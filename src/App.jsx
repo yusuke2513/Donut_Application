@@ -48,9 +48,7 @@ function App() {
       </section>
 
       {/* 右：注文リストと合計 */}
-      <section
-        className="order-section"
-      >
+      <section className="order-section">
         <h2>📋 注文メモ</h2>
         <ul>
           {orders.map((order) => (
@@ -72,8 +70,17 @@ function App() {
         <hr />
         <h3>合計金額: {calculateFinalTotal(orders)}円</h3>
         {/* セット割引の有無を表示 */}
+        {/*
         {orders.length > 0 && (
           <p style={{ color: "red" }}>※セット割引適用済み</p>
+        )}
+        */}
+        {/* 実際に割引が発生しているかチェック */}
+        {calculateFinalTotal(orders) <
+          orders.reduce((sum, i) => sum + i.price, 0) && (
+          <p className="discount-tag">
+            ※ドーナツ＆ソフトクリーム セット割引適用！
+          </p>
         )}
       </section>
       {/* 🌟 右下の固定ボタンを追加 */}
