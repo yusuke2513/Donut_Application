@@ -98,3 +98,18 @@
     grid-template-columns: repeat(2, 1fr); /* スマホでは2列に固定 */
   }
 }
+
+.discount-tag {
+  color: #ff0000;      /* パキッとした赤色 */
+  font-weight: bold;   /* 太字にして目立たせる */
+  margin-top: 5px;
+  font-size: 0.9rem;
+  /* お好みで、少しだけ動きをつけるとさらに「お得感」が出ます */
+  animation: flash 1s infinite alternate; 
+}
+
+/* 文字をふわふわ点滅させる演出 */
+@keyframes flash {
+  from { opacity: 1; }
+  to { opacity: 0.7; }
+}
