@@ -79,7 +79,7 @@ function App() {
         {calculateFinalTotal(orders) <
           orders.reduce((sum, i) => sum + i.price, 0) && (
           <p className="discount-tag">
-            ※ドーナツ＆ソフトクリーム セット割引適用！
+            ※ドーナツ＆ドリンク セット割引適用！
           </p>
         )}
       </section>
