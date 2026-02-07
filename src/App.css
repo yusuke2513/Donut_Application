@@ -1,71 +1,189 @@
-/* 1. 全体のレイアウト */
+/* 1. 全体のレイアウト（3カラム対応） */
 .container {
   display: flex;
-  gap: 40px;
+  flex-direction: row;
+  gap: 20px;
   padding: 20px;
   min-height: 100vh;
   background-color: #fffaf0; /* ほんのりクリーム色 */
   font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
 }
 
-/* 2. メニューセクションのデザイン */
-.menu-section {
+/* 各セクションの共通土台 */
+.menu-section, .order-section, .serving-section {
   flex: 1;
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
 }
 
+/* 2. メニューセクションのデザイン */
 .menu-section h2 {
   color: #8d6e63; /* チョコレートブラウン */
-  border-bottom: 2px dashed #ffccbc; /* 点線のアクセント */
+  border-bottom: 2px dashed #ffccbc;
   padding-bottom: 10px;
   margin-bottom: 20px;
 }
 
-/* 商品を並べるグリッド */
 .menu-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 15px;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
 }
 
-/* 3. 商品ボタン*/
+/* 商品ボタン */
 .product-button {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 20px 10px;
+  padding: 15px 10px;
   background-color: #ffccbc; /* 柔らかいオレンジ色 */
-  border: 2px solid #ffb74d; /* 枠線も少し濃く */
+  border: 2px solid #ffb74d;
   border-radius: 15px;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 0 #ffb74d; /* 立体的な影 */
+  box-shadow: 0 4px 0 #ffb74d;
 }
 
 .product-button:hover {
-  background-color: #ffcc80; /* マウスを乗せるとさらに濃く */
+  background-color: #ffcc80;
   transform: translateY(-2px);
 }
 
 .product-button:active {
   transform: translateY(4px);
-  box-shadow: none; /* 押した時に影を消して沈ませる */
+  box-shadow: none;
 }
 
-/* ボタン内の文字装飾 */
 .product-name {
   font-weight: bold;
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: #5d4037;
   margin-bottom: 5px;
 }
 
 .product-price {
-  font-size: 0.9rem;
-  color: #e65100; /* 価格も少し濃いオレンジで見やすく */
+  font-size: 0.8rem;
+  color: #e65100;
 }
 
-/* 4. 右下のフローティングボタン */
+/* 3. 注文メモ（レジ）セクション */
+.order-section {
+  border-left: 4px solid #ffb74d; /* レジ用オレンジアクセント */
+}
+
+.order-list {
+  list-style: none;
+  padding: 0;
+  flex-grow: 1;
+}
+
+.order-item {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+  color: #5d4037;
+}
+
+/* 会計ボタン */
+.checkout-button {
+  width: 100%;
+  padding: 15px;
+  margin-top: 15px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.checkout-button:hover:not(:disabled) {
+  background-color: #45a049;
+}
+
+.checkout-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* 4. 提供待ち（キッチン）セクション */
+.serving-section {
+  border-left: 4px solid #4caf50; /* キッチン用グリーンアクセント */
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.reset-button {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.serving-list {
+  list-style: none;
+  padding: 0;
+}
+
+.serving-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: #fdfdfd;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  transition: all 0.3s;
+}
+
+/* 提供済みになった時の演出 */
+.serving-item.is-served {
+  opacity: 0.5;
+  background-color: #f5f5f5;
+  text-decoration: line-through;
+}
+
+/* 提供ステータスボタン */
+.status-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.status-btn.unpaid { background-color: #ffeb3b; }
+.status-btn.paid { background-color: #ccc; }
+
+/* 5. 共通・その他 */
+.discount-tag {
+  color: #ff0000;
+  font-weight: bold;
+  margin: 10px 0;
+  font-size: 0.85rem;
+  animation: flash 1s infinite alternate;
+}
+
+@keyframes flash {
+  from { opacity: 1; }
+  to { opacity: 0.7; }
+}
+
 .admin-fab {
   position: fixed;
   bottom: 30px;
@@ -77,69 +195,19 @@
   padding: 15px 25px;
   font-weight: bold;
   box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-  cursor: pointer;
   z-index: 1000;
-  transition: transform 0.2s;
 }
 
-.admin-fab:hover {
-  transform: scale(1.05);
-}
-
-/* 5. スマホ対応：狭い時は縦並びに切り替え */
-@media (max-width: 768px) {
+/* 6. スマホ・タブレット対応 */
+@media (max-width: 1024px) {
   .container {
     flex-direction: column;
-    padding: 15px;
-    gap: 20px;
+    gap: 15px;
   }
-  
+}
+
+@media (max-width: 768px) {
   .menu-grid {
-    grid-template-columns: repeat(2, 1fr); /* スマホでは2列に固定 */
+    grid-template-columns: repeat(2, 1fr);
   }
-}
-
-.discount-tag {
-  color: #ff0000;      /* パキッとした赤色 */
-  font-weight: bold;   /* 太字にして目立たせる */
-  margin-top: 5px;
-  font-size: 0.9rem;
-  /* お好みで、少しだけ動きをつけるとさらに「お得感」が出ます */
-  animation: flash 1s infinite alternate; 
-}
-
-/* 文字をふわふわ点滅させる演出 */
-@keyframes flash {
-  from { opacity: 1; }
-  to { opacity: 0.7; }
-}
-
-/* 会計ボタンのスタイル */
-.checkout-button {
-  width: 100%;
-  padding: 15px;
-  margin-top: 20px;
-  background-color: #4caf50; /* 安心のグリーン */
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 1.2rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.2s, transform 0.1s;
-}
-
-.checkout-button:hover {
-  background-color: #45a049;
-}
-
-.checkout-button:active {
-  transform: scale(0.98); /* 押した時に少し凹む演出 */
-}
-
-/* 注文が空の時のスタイル */
-.checkout-button:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
-  transform: none;
 }
