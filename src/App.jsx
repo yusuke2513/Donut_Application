@@ -1,11 +1,22 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { calculateFinalTotal } from "../database/orderLogic.js";
-import { PRODUCTS } from "../database/products";
+import { fetchProducts } from "../database/products";
+
 import "./App.css";
 
 function App() {
+  const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [servingQueue, setServingQueue] = useState([]); // 🌟 提供待ち用の新ステート
+
+ useEffect(() => {
+  const loadProducts = async () => {
+    const data = await fetchProducts();
+    console.log("取得した商品データ:", data);
+    setProducts(data);
+  };
+  loadProducts();
+}, []);
 
   // お会計確定ボタンの処理
   const handleCheckout = () => {
@@ -71,7 +82,7 @@ function App() {
       <section className="menu-section">
         <h2>🍩 メニュー</h2>
         <div className="menu-grid">
-          {PRODUCTS.map((p) => (
+          {products.map((p) => (
             <button
               key={p.id}
               onClick={() => addOrder(p)}
