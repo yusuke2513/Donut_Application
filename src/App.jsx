@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { PRODUCTS } from './data/products';
-import { calculateFinalTotal } from './calculate/orderLogic';
+import { calculateFinalTotal } from './calculate/orderLogic.js';
 
 function App() {
   const [orders, setOrders] = useState([]);
@@ -54,6 +54,10 @@ function App() {
         {/* セット割引の有無を表示 */}
         {orders.length > 0 && <p style={{ color: 'red' }}>※セット割引適用済み</p>}
       </section>
+      {/* 🌟 右下の固定ボタンを追加 */}
+      <button className="admin-fab" onClick={() => alert('管理画面を開きます')}>
+        ドーナツの追加・削除
+      </button>
     </div>
   );
 }
