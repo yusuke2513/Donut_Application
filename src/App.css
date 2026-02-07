@@ -1,24 +1,71 @@
-/* App.css の中身をこれに入れ替えるのがおすすめ */
-
-/* 全体のレイアウト */
+/* 1. 全体のレイアウト */
 .container {
   display: flex;
   gap: 40px;
   padding: 20px;
-  min-height: 100vh; /* 画面いっぱいの高さを確保 */
-  background-color: #fffaf0; /* ほんのりドーナツ屋さんらしい色 */
+  min-height: 100vh;
+  background-color: #fffaf0; /* ほんのりクリーム色 */
   font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
 }
 
-/* スマホ対応：狭い時は縦並びにする */
-@media (max-width: 768px) {
-  .container {
-    flex-direction: column;
-    padding: 10px;
-  }
+/* 2. メニューセクションのデザイン */
+.menu-section {
+  flex: 1;
 }
 
-/* 先ほど作った右下のボタン（ここに移すと管理しやすいです） */
+.menu-section h2 {
+  color: #8d6e63; /* チョコレートブラウン */
+  border-bottom: 2px dashed #ffccbc; /* 点線のアクセント */
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+/* 商品を並べるグリッド */
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 15px;
+}
+
+/* 3. 商品ボタン*/
+.product-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 10px;
+  background-color: #ffccbc; /* 柔らかいオレンジ色 */
+  border: 2px solid #ffb74d; /* 枠線も少し濃く */
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 0 #ffb74d; /* 立体的な影 */
+}
+
+.product-button:hover {
+  background-color: #ffcc80; /* マウスを乗せるとさらに濃く */
+  transform: translateY(-2px);
+}
+
+.product-button:active {
+  transform: translateY(4px);
+  box-shadow: none; /* 押した時に影を消して沈ませる */
+}
+
+/* ボタン内の文字装飾 */
+.product-name {
+  font-weight: bold;
+  font-size: 1rem;
+  color: #5d4037;
+  margin-bottom: 5px;
+}
+
+.product-price {
+  font-size: 0.9rem;
+  color: #e65100; /* 価格も少し濃いオレンジで見やすく */
+}
+
+/* 4. 右下のフローティングボタン */
 .admin-fab {
   position: fixed;
   bottom: 30px;
@@ -32,4 +79,22 @@
   box-shadow: 0 4px 10px rgba(0,0,0,0.2);
   cursor: pointer;
   z-index: 1000;
+  transition: transform 0.2s;
+}
+
+.admin-fab:hover {
+  transform: scale(1.05);
+}
+
+/* 5. スマホ対応：狭い時は縦並びに切り替え */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+    padding: 15px;
+    gap: 20px;
+  }
+  
+  .menu-grid {
+    grid-template-columns: repeat(2, 1fr); /* スマホでは2列に固定 */
+  }
 }
