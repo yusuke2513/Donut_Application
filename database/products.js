@@ -8,6 +8,7 @@ export const PRODUCTS = [
   },
   {
     id: 2,
+    
     name: 'チョコドーナツ',
     price: 180,
   },

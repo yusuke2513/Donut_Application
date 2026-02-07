@@ -1,0 +1,16 @@
+CREATE DATABASE donut;
+
+\c donut
+
+CREATE TABLE donuts (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(50) NOT NULL,
+  price INT NOT NULL
+);
+
+CREATE TABLE orders (
+  order_id SERIAL PRIMARY KEY,
+  donut_id INT NOT NULL REFERENCES donuts(id),
+  status VARCHAR(20) NOT NULL DEFAULT '未提供',
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { PRODUCTS } from "./data/products";
-import { calculateFinalTotal } from "./calculate/orderLogic.js";
+import { calculateFinalTotal } from "../database/orderLogic.js";
+import { PRODUCTS } from "../database/products";
 import "./App.css";
 
 function App() {
