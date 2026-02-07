@@ -113,3 +113,33 @@
   from { opacity: 1; }
   to { opacity: 0.7; }
 }
+
+/* 会計ボタンのスタイル */
+.checkout-button {
+  width: 100%;
+  padding: 15px;
+  margin-top: 20px;
+  background-color: #4caf50; /* 安心のグリーン */
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.checkout-button:hover {
+  background-color: #45a049;
+}
+
+.checkout-button:active {
+  transform: scale(0.98); /* 押した時に少し凹む演出 */
+}
+
+/* 注文が空の時のスタイル */
+.checkout-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  transform: none;
+}

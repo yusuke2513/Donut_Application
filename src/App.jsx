@@ -5,6 +5,19 @@ import "./App.css";
 
 function App() {
   const [orders, setOrders] = useState([]);
+  const handleCheckout = () => {
+    const total = calculateFinalTotal(orders);
+    if (orders.length === 0) return;
+
+    if (
+      window.confirm(
+        `合計 ${total}円 です。お会計を完了して注文をリセットしますか？`,
+      )
+    ) {
+      setOrders([]); // 🌟 注文リストを空にする
+      alert("お会計が完了しました。ありがとうございます！");
+    }
+  };
 
   // 注文追加（トッピング等の拡張もここで可能）
   const addOrder = (product) => {
@@ -78,10 +91,16 @@ function App() {
         {/* 実際に割引が発生しているかチェック */}
         {calculateFinalTotal(orders) <
           orders.reduce((sum, i) => sum + i.price, 0) && (
-          <p className="discount-tag">
-            ※ドーナツ＆ドリンク セット割引適用！
-          </p>
+          <p className="discount-tag">※ドーナツ＆ドリンク セット割引適用！</p>
         )}
+        {/* 🌟 会計ボタンを追加 */}
+        <button
+          className="checkout-button"
+          onClick={handleCheckout}
+          disabled={orders.length === 0} // 注文がない時は押せないように
+        >
+          お会計を確定する
+        </button>
       </section>
       {/* 🌟 右下の固定ボタンを追加 */}
       <button className="admin-fab" onClick={() => alert("管理画面を開きます")}>
