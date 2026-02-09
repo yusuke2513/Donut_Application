@@ -383,6 +383,38 @@ h2, h3 {
 .status-btn.paid { background-color: #ccc; }
 
 /* 5. 共通・その他 */
+.menu-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #ffccbc;
+  padding-bottom: 10px;
+}
+
+.tab-button {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background-color: #f1f2f6;
+  color: #57606f;
+  border-radius: 8px 8px 0 0; /* 上側だけ丸く */
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s;
+  min-height: 44px; /* スマホで押しやすい高さ */
+}
+
+/* 🌟 アクティブなタブのデザイン */
+.tab-button.active {
+  background-color: #ffccbc;
+  color: #5d4037;
+  border-bottom: 3px solid #ffb74d; /* 下側にアクセント線 */
+}
+
+.tab-button:hover:not(.active) {
+  background-color: #dfe4ea;
+}
+
 .summary-row {
   display: flex;
   justify-content: space-between;

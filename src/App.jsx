@@ -1,27 +1,32 @@
 import { useEffect, useState } from "react";
 import { calculateFinalTotal } from "../database/orderLogic.js";
 import { fetchProducts } from "../database/products";
-
+import { fetchToppings } from "../database/toppings";
 import "./App.css";
-
-// 利用可能なトッピング一覧(後で消す．将来的にはDBから取得する想定)
-const AVAILABLE_TOPPINGS = [
-  { name: "カラースプレー", price: 30 },
-  { name: "チョコチップ", price: 30 },
-];
 
 function App() {
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [servingQueue, setServingQueue] = useState([]); // 🌟 提供待ち用の新ステート
+  const [servingQueue, setServingQueue] = useState([]); // 提供待ち用の新ステート
+  const [activeTab, setActiveTab] = useState("donut"); // 初期値はドーナツ
+  // DBから取得したトッピングを保存する場所
+  const [availableToppings, setAvailableToppings] = useState([]);
+  const [toppingTargetId, setToppingTargetId] = useState(null);
+  const [customizingProduct, setCustomizingProduct] = useState(null); // カスタム中の商品を保存
 
+  // useEffect を修正して、商品とトッピングを同時に取得
   useEffect(() => {
-    const loadProducts = async () => {
-      const data = await fetchProducts();
-      console.log("取得した商品データ:", data);
-      setProducts(data);
+    const loadData = async () => {
+      // Promise.all で効率よく並列にデータを取得します
+      const [productData, toppingData] = await Promise.all([
+        fetchProducts(),
+        fetchToppings(),
+      ]);
+
+      setProducts(productData);
+      setAvailableToppings(toppingData); // 🌟 ステートに保存
     };
-    loadProducts();
+    loadData();
   }, []);
 
   // お会計確定ボタンの処理
@@ -47,6 +52,17 @@ function App() {
       setOrders([]);
       // alert("お会計完了！提供待ちリストに送りました。");
     }
+  };
+
+  const handleMenuClick = (product) => {
+    // 🌟 カスタムが不要な商品（例：ボールドーナツ）はそのまま追加
+    if (product.name === "milkyボールドーナツ") {
+      addOrder(product);
+      return;
+    }
+
+    // 🌟 それ以外は「カスタム中」としてステートに保存（モーダルが開く）
+    setCustomizingProduct(product);
   };
 
   // 🌟 提供待ちリスト内のステータスを切り替える関数（グループ単位）
@@ -127,13 +143,50 @@ function App() {
   };
 
   const { total, discount, finalTotal, setCount } = calculateFinalTotal(orders);
-  const [toppingTargetId, setToppingTargetId] = useState(null); // トッピング中の orderId を保存
 
   return (
     <div className="container">
       {/* 左：商品一覧（メニュー） */}
       <section className="menu-section">
         <h2>🍩 メニュー</h2>
+        {/* 🌟 タブボタンの配置 */}
+        <div className="menu-tabs">
+          <button
+            className={`tab-button ${activeTab === "donut" ? "active" : ""}`}
+            onClick={() => setActiveTab("donut")}
+          >
+            ドーナツ
+          </button>
+          <button
+            className={`tab-button ${activeTab === "soft_cream" ? "active" : ""}`}
+            onClick={() => setActiveTab("soft_cream")}
+          >
+            ソフトクリーム
+          </button>
+          <button
+            className={`tab-button ${activeTab === "drink" ? "active" : ""}`}
+            onClick={() => setActiveTab("drink")}
+          >
+            ドリンク
+          </button>
+        </div>
+
+        <div className="menu-grid">
+          {/* 🌟 選択中のタブ（product_type）に一致する商品だけを表示 */}
+          {products
+            .filter((p) => p.product_type === activeTab)
+            .map((p) => (
+              <button
+                key={`${p.product_type}-${p.id}`}
+                onClick={() => handleMenuClick(p)}
+                className="product-button"
+              >
+                <span className="product-name">{p.name}</span>
+                <span className="product-price">{p.price}円</span>
+              </button>
+            ))}
+        </div>
+        {/*
         <div className="menu-grid">
           {products.map((p) => (
             <button
@@ -146,6 +199,7 @@ function App() {
             </button>
           ))}
         </div>
+        */}
       </section>
 
       {/* 中央：現在の注文リストと合計（レジ機能） */}
@@ -344,7 +398,7 @@ function App() {
                   <p>対象: {currentOrder?.name}</p>
 
                   <div className="topping-options">
-                    {AVAILABLE_TOPPINGS.map((t) => {
+                    {availableToppings.map((t) => {
                       // 現在の個数を計算
                       const count =
                         currentOrder?.toppings?.filter(
@@ -352,7 +406,10 @@ function App() {
                         ).length || 0;
 
                       return (
-                        <div key={t.name} className="topping-option-row">
+                        <div
+                          key={t.id || t.name}
+                          className="topping-option-row"
+                        >
                           {/* 2. メインの追加ボタン */}
                           <button
                             className="topping-select-btn"
@@ -389,6 +446,96 @@ function App() {
               onClick={() => setToppingTargetId(null)}
             >
               完了
+            </button>
+          </div>
+        </div>
+      )}
+      
+      {/* 🌟 カスタム選択モーダル（味・温度など） */}
+      {customizingProduct && (
+        <div className="modal-overlay">
+          <div className="topping-modal">
+            <h3>{customizingProduct.name} を選択</h3>
+            <p style={{ marginBottom: "15px", color: "#666" }}>
+              バリエーションを選んでください
+            </p>
+
+            <div
+              className="flavor-options"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "10px",
+              }}
+            >
+              {/* --- ドーナツの味選択 --- */}
+              {customizingProduct.product_type === "donut" &&
+                customizingProduct.name !== "milkyボールドーナツ" &&
+                ["プレーン", "チョコレート", "季節限定"].map((flavor) => (
+                  <button
+                    key={flavor}
+                    className="topping-select-btn"
+                    onClick={() => {
+                      addOrder({
+                        ...customizingProduct,
+                        name: `${customizingProduct.name} (${flavor})`,
+                      });
+                      setCustomizingProduct(null);
+                    }}
+                  >
+                    {flavor}
+                  </button>
+                ))}
+
+              {/* --- ドリンクの温度選択 --- */}
+              {customizingProduct.product_type === "drink" &&
+                ["Ice", "Hot"].map((temp) => (
+                  <button
+                    key={temp}
+                    className="topping-select-btn"
+                    onClick={() => {
+                      addOrder({
+                        ...customizingProduct,
+                        name: `${customizingProduct.name} (${temp})`,
+                      });
+                      setCustomizingProduct(null);
+                    }}
+                  >
+                    {temp}
+                  </button>
+                ))}
+
+              {/* --- ソフトクリームのフレーバー選択 --- */}
+              {customizingProduct.product_type === "soft_cream" &&
+                ["プレミアムmilky", "チョコ", "ミックス"].map((flavor) => (
+                  <button
+                    key={flavor}
+                    className="topping-select-btn"
+                    onClick={() => {
+                      // 器の名前を保持しつつ、フレーバーを前に持ってくる
+                      const vessel = customizingProduct.name.includes("キッズ")
+                        ? "キッズ"
+                        : customizingProduct.name.includes("コーン")
+                          ? "コーン"
+                          : "カップ";
+                      addOrder({
+                        ...customizingProduct,
+                        name: `${flavor}ソフト (${vessel})`,
+                      });
+                      setCustomizingProduct(null);
+                    }}
+                  >
+                    {flavor}
+                  </button>
+                ))}
+            </div>
+
+            <button
+              className="close-modal-btn"
+              onClick={() => setCustomizingProduct(null)}
+              style={{ marginTop: "20px", backgroundColor: "#ccc" }}
+            >
+              キャンセル
             </button>
           </div>
         </div>
