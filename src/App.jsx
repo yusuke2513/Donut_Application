@@ -84,7 +84,7 @@ function App() {
         <div className="menu-grid">
           {products.map((p) => (
             <button
-              key={p.id}
+              key={`${p.product_type}-${p.id}`}
               onClick={() => addOrder(p)}
               className="product-button"
             >

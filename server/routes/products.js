@@ -6,12 +6,12 @@ const router = express.Router();
 router.get("/", async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT id, name, price, 'donut' AS type FROM donuts
+      SELECT id, name, price, 'donut' AS product_type FROM donuts
       UNION ALL
-      SELECT id, name, price, 'drink' AS type FROM drinks
+      SELECT id, name, price, 'drink' AS product_type FROM drinks
       UNION ALL
-      SELECT id, name, price, 'soft_cream' AS type FROM soft_creams
-      ORDER BY type, id
+      SELECT id, name, price, 'soft_cream' AS product_type FROM soft_creams
+      ORDER BY product_type, id
     `);
 
     res.json(result.rows);
