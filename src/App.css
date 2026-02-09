@@ -171,6 +171,46 @@
   cursor: pointer;
 }
 
+/* App.css に追加 */
+
+/* ボタンを横並びにするコンテナ */
+.topping-option-row {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* ボタン同士の隙間 */
+  margin-bottom: 12px;
+}
+
+/* 追加ボタンを幅広にする */
+.topping-select-btn {
+  flex-grow: 1; /* 余ったスペースを埋める */
+  text-align: left;
+  padding: 10px 15px;
+  /* ...既存のスタイル... */
+}
+
+/* マイナスボタンの見た目 */
+.topping-minus-btn {
+  background-color: #f1f2f6;
+  border: 1px solid #dfe4ea;
+  color: #57606f;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.topping-minus-btn:hover {
+  background-color: #ff7675; /* ホバーで赤っぽくして「削除」を直感的に */
+  color: white;
+  border-color: #d63031;
+}
+
 /* トッピング関連スタイル（未使用） 
 .order-item-container {
   border-bottom: 1px solid #eee;

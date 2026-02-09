@@ -92,6 +92,32 @@ function App() {
     );
   };
 
+  // 1. 商品（注文）そのものを削除する関数
+  const removeOrder = (orderId) => {
+    setOrders(orders.filter((order) => order.orderId !== orderId));
+  };
+
+  // 2. 特定のトッピングを1つだけ削除する関数
+  const removeTopping = (orderId, toppingName) => {
+    setOrders(
+      orders.map((order) => {
+        if (order.orderId === orderId) {
+          // 同じ名前のトッピングの中から「最後に追加された1つ」を探して削除
+          const lastIndex = [...order.toppings]
+            .reverse()
+            .findIndex((t) => t.name === toppingName);
+          if (lastIndex !== -1) {
+            const actualIndex = order.toppings.length - 1 - lastIndex;
+            const newToppings = [...order.toppings];
+            newToppings.splice(actualIndex, 1);
+            return { ...order, toppings: newToppings };
+          }
+        }
+        return order;
+      }),
+    );
+  };
+
   const { total, discount, finalTotal, setCount } = calculateFinalTotal(orders);
   const [toppingTargetId, setToppingTargetId] = useState(null); // トッピング中の orderId を保存
 
@@ -115,7 +141,6 @@ function App() {
       </section>
 
       {/* 中央：現在の注文リストと合計（レジ機能） */}
-
       <section className="order-section">
         <h2>📋 現在の注文</h2>
         <ul className="order-list">
@@ -123,14 +148,27 @@ function App() {
             <li key={order.orderId} className="order-item">
               <div className="order-info">
                 <span className="order-name">{order.name}</span>
-                {/* トッピングがある場合のみ表示 */}
+
+                {/* 🌟 修正ポイント1: トッピングを個数まとめて表示し、クリックで消せるようにする */}
                 {order.toppings?.length > 0 && (
                   <div className="order-toppings">
-                    {order.toppings.map((t, idx) => (
-                      <span key={idx} className="topping-badge">
-                        +{t.name}
-                      </span>
-                    ))}
+                    {[...new Set(order.toppings.map((t) => t.name))].map(
+                      (name) => {
+                        const count = order.toppings.filter(
+                          (t) => t.name === name,
+                        ).length;
+                        return (
+                          <span
+                            key={name}
+                            className="topping-badge clickable"
+                            onClick={() => removeTopping(order.orderId, name)}
+                            title="クリックで1つ削除"
+                          >
+                            +{name} {count > 1 ? `x${count}` : ""}
+                          </span>
+                        );
+                      },
+                    )}
                   </div>
                 )}
               </div>
@@ -141,16 +179,26 @@ function App() {
                   order.product_type === "soft_cream") && (
                   <button
                     className="add-topping-trigger"
-                    onClick={() => setToppingTargetId(order.orderId)} // 🌟 ターゲットを設定してモーダルを開く
+                    onClick={() => setToppingTargetId(order.orderId)}
                   >
                     ＋
                   </button>
                 )}
                 <span className="order-price">{order.price}円</span>
+
+                {/* 🌟 修正ポイント2: 注文自体を削除する「×」ボタンを追加 */}
+                <button
+                  className="delete-order-btn"
+                  onClick={() => removeOrder(order.orderId)}
+                  title="注文を削除"
+                >
+                  ×
+                </button>
               </div>
             </li>
           ))}
         </ul>
+
         {/*
         <ul className="order-list">
           {orders.map((order) => (
@@ -236,42 +284,55 @@ function App() {
       </button>
 
       {/* トッピングモーダル部分 */}
-      {/* App.jsx の return 文の下の方にあるモーダル部分 */}
-
       {toppingTargetId && (
         <div className="modal-overlay">
           <div className="topping-modal">
             <h3>トッピングを追加</h3>
 
-            {/* 🌟 選択中の注文データを特定するロジックを追加 */}
+            {/* 🌟 1. データの特定を最初に行い、変数 currentOrder をこのブロック全体で使えるようにします */}
             {(() => {
               const currentOrder = orders.find(
                 (o) => o.orderId === toppingTargetId,
               );
+
               return (
                 <>
                   <p>対象: {currentOrder?.name}</p>
 
                   <div className="topping-options">
                     {AVAILABLE_TOPPINGS.map((t) => {
-                      // 🌟 現在の注文に、このトッピングが何個含まれているか数える
+                      // 現在の個数を計算
                       const count =
                         currentOrder?.toppings?.filter(
                           (item) => item.name === t.name,
                         ).length || 0;
 
                       return (
-                        <button
-                          key={t.name}
-                          className="topping-select-btn"
-                          onClick={() => addTopping(toppingTargetId, t)}
-                        >
-                          {t.name} (+{t.price}円)
-                          {/* 🌟 1個以上なら「×1」と表示する */}
+                        <div key={t.name} className="topping-option-row">
+                          {/* 2. メインの追加ボタン */}
+                          <button
+                            className="topping-select-btn"
+                            onClick={() => addTopping(toppingTargetId, t)}
+                          >
+                            {t.name} (+{t.price}円)
+                            {count > 0 && (
+                              <span className="topping-count"> ×{count}</span>
+                            )}
+                          </button>
+
+                          {/* 3. 削除（マイナス）ボタン */}
                           {count > 0 && (
-                            <span className="topping-count"> ×{count}</span>
+                            <button
+                              className="topping-minus-btn"
+                              onClick={() =>
+                                removeTopping(toppingTargetId, t.name)
+                              }
+                              title="1つ減らす"
+                            >
+                              ー
+                            </button>
                           )}
-                        </button>
+                        </div>
                       );
                     })}
                   </div>
