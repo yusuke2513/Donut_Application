@@ -9,14 +9,14 @@ function App() {
   const [orders, setOrders] = useState([]);
   const [servingQueue, setServingQueue] = useState([]); // 🌟 提供待ち用の新ステート
 
- useEffect(() => {
-  const loadProducts = async () => {
-    const data = await fetchProducts();
-    console.log("取得した商品データ:", data);
-    setProducts(data);
-  };
-  loadProducts();
-}, []);
+  useEffect(() => {
+    const loadProducts = async () => {
+      const data = await fetchProducts();
+      console.log("取得した商品データ:", data);
+      setProducts(data);
+    };
+    loadProducts();
+  }, []);
 
   // お会計確定ボタンの処理
   const handleCheckout = () => {
@@ -76,6 +76,8 @@ function App() {
     );
   };
 
+  const { total, discount, finalTotal, setCount } = calculateFinalTotal(orders);
+
   return (
     <div className="container">
       {/* 左：商品一覧（メニュー） */}
@@ -96,6 +98,7 @@ function App() {
       </section>
 
       {/* 中央：現在の注文リストと合計（レジ機能） */}
+
       <section className="order-section">
         <h2>📋 現在の注文</h2>
         <ul className="order-list">
@@ -108,12 +111,35 @@ function App() {
         </ul>
         <hr />
         <div className="total-area">
-          <h3>合計金額: {calculateFinalTotal(orders)}円</h3>
-          {/* 割引表示のロジック */}
-          {calculateFinalTotal(orders) <
-            orders.reduce((sum, i) => sum + i.price, 0) && (
-            <p className="discount-tag">※ドーナツ＆ドリンク セット割引適用！</p>
+          {/* 1. 小計（定価の合計）の表示 */}
+          <div className="summary-row">
+            <span>小計:</span>
+            <span>{total}円</span>
+          </div>
+
+          {/* 2. 割引がある場合だけ内訳を表示 */}
+          {discount > 0 && (
+            <div className="summary-row discount-info">
+              <span>セット割引 ({setCount}セット):</span>
+              <span className="discount-amount">-{discount}円</span>
+            </div>
           )}
+
+          <hr />
+
+          {/* 3. 最終的な合計金額 */}
+          <div className="summary-row final-total">
+            <h3>合計金額:</h3>
+            <h3>{finalTotal}円</h3>
+          </div>
+
+          {/* 4. 割引適用のメッセージタグ */}
+          {discount > 0 && (
+            <p className="discount-tag">
+              ※ドーナツ＆ドリンク セット割引適用中！
+            </p>
+          )}
+
           {/* お会計確定ボタン */}
           <button
             className="checkout-button"

@@ -171,6 +171,28 @@
 .status-btn.paid { background-color: #ccc; }
 
 /* 5. 共通・その他 */
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.discount-amount {
+  color: #e74c3c; /* 割引額を赤色に */
+  font-weight: bold;
+}
+
+.final-total {
+  font-size: 1.2em;
+  color: #2c3e50;
+}
+
+.discount-tag {
+  color: #27ae60; /* 適用中メッセージは安心感のある緑色に */
+  font-size: 0.85em;
+  margin-top: 4px;
+}
+/*
 .discount-tag {
   color: #ff0000;
   font-weight: bold;
@@ -178,6 +200,7 @@
   font-size: 0.85rem;
   animation: flash 1s infinite alternate;
 }
+*/
 
 @keyframes flash {
   from { opacity: 1; }
