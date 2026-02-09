@@ -28,36 +28,44 @@ function App() {
   const handleCheckout = () => {
     if (orders.length === 0) return;
 
-    const total = calculateFinalTotal(orders);
+    const { finalTotal } = calculateFinalTotal(orders);
+
     if (
       window.confirm(
-        `合計 ${total}円 です。お会計を確定して提供待ちに回しますか？`,
+        `合計 ${finalTotal}円 です。お会計を確定して提供待ちに回しますか？`,
       )
     ) {
+      // 🌟 注文全体を一つの「グループ」として作成
+      const newOrderGroup = {
+        groupId: Date.now(), // 一意のID
+        items: [...orders], // 注文された全商品を配列として保持
+        totalPrice: finalTotal,
+        status: "未提供",
+      };
       // 🌟 現在の注文（orders）を servingQueue に追加し、orders を空にする
-      setServingQueue([...servingQueue, ...orders]);
+      setServingQueue([...servingQueue, newOrderGroup]);
       setOrders([]);
       // alert("お会計完了！提供待ちリストに送りました。");
     }
   };
 
-  // 🌟 提供待ちリスト内のステータスを切り替える関数
-  const toggleServingStatus = (orderId) => {
+  // 🌟 提供待ちリスト内のステータスを切り替える関数（グループ単位）
+  const toggleServingStatus = (groupId) => {
     setServingQueue(
-      servingQueue.map((order) =>
-        order.orderId === orderId
+      servingQueue.map((group) =>
+        group.groupId === groupId
           ? {
-              ...order,
-              status: order.status === "未提供" ? "提供済み" : "未提供",
+              ...group,
+              status: group.status === "未提供" ? "提供済み" : "未提供",
             }
-          : order,
+          : group,
       ),
     );
   };
 
-  // 🌟 「提供済み」になった商品だけをリストから削除（リセット）する関数
+  // 🌟 「提供済み」になったグループをリストから削除（リセット）
   const clearServedItems = () => {
-    setServingQueue(servingQueue.filter((order) => order.status === "未提供"));
+    setServingQueue(servingQueue.filter((group) => group.status === "未提供"));
   };
 
   // 注文追加（トッピング等の拡張もここで可能）
@@ -255,24 +263,60 @@ function App() {
       <section className="serving-section">
         <div className="section-header">
           <h2>📦 提供待ちリスト</h2>
-          {/* 提供済みになったものだけを消去するボタン */}
           <button className="reset-button" onClick={clearServedItems}>
             提供済みをリセット
           </button>
         </div>
         <ul className="serving-list">
-          {servingQueue.map((item) => (
+          {servingQueue.map((group, index) => (
             <li
-              key={item.orderId}
-              className={`serving-item ${item.status === "提供済み" ? "is-served" : ""}`}
+              key={group.groupId}
+              className={`serving-item ${group.status === "提供済み" ? "is-served" : ""}`}
+              style={{ flexDirection: "column", alignItems: "flex-start" }}
             >
-              <span className="item-info">{item.name}</span>
-              <button
-                onClick={() => toggleServingStatus(item.orderId)}
-                className={`status-btn ${item.status === "提供済み" ? "paid" : "unpaid"}`}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  width: "100%",
+                  marginBottom: "10px",
+                }}
               >
-                {item.status}
-              </button>
+                {/* 🌟 注文Noはインデックス+1で表示 */}
+                <strong style={{ fontSize: "1.1rem", color: "#2c3e50" }}>
+                  注文No.{index + 1}
+                </strong>
+                <button
+                  onClick={() => toggleServingStatus(group.groupId)}
+                  className={`status-btn ${group.status === "提供済み" ? "paid" : "unpaid"}`}
+                >
+                  {group.status}
+                </button>
+              </div>
+
+              {/* グループ内の各商品とトッピングを表示 */}
+              <div
+                className="order-group-items"
+                style={{ width: "100%", paddingLeft: "10px" }}
+              >
+                {group.items.map((item, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      marginBottom: "5px",
+                      fontSize: "0.9rem",
+                      color: "#333",
+                    }}
+                  >
+                    ・{item.name}
+                    {item.toppings?.length > 0 && (
+                      <span style={{ fontSize: "0.8rem", color: "#666" }}>
+                        （{item.toppings.map((t) => t.name).join(", ")}）
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
             </li>
           ))}
         </ul>

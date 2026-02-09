@@ -1,3 +1,19 @@
+:root {
+  color-scheme: light; /* 常にライトモードの配色を使うように指示 */
+}
+
+/* App.css の上部または全体の設定に追加 */
+
+body {
+  background-color: #ffffff; /* 背景を確実に白にする */
+  color: #333333;           /* 文字を確実に濃いグレーにする */
+}
+
+/* タイトル（現在の注文など）を確実に黒にする */
+h2, h3 {
+  color: #2c3e50; /* 濃い紺色などで視認性を高める */
+}
+
 /* 1. 全体のレイアウト（3カラム対応） */
 .container {
   display: flex;
@@ -6,6 +22,7 @@
   padding: 20px;
   min-height: 100vh;
   background-color: #fffaf0; /* ほんのりクリーム色 */
+  color: #333333;
   font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
 }
 
@@ -82,6 +99,30 @@
   flex-grow: 1;
 }
 
+/* 注文リスト内のテキスト色を固定 */
+.order-name {
+  color: #333333; /* 濃いグレー */
+  font-weight: bold;
+}
+
+.order-item {
+  color: #333333;
+}
+
+/* トッピングのバッジ（注文リスト内） */
+.topping-badge {
+  background-color: #f1f2f6;
+  color: #2c3e50;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  margin-right: 5px;
+}
+
+.topping-badge.clickable:hover {
+  text-decoration: line-through; /* 消せることを示す */
+  opacity: 0.7;
+}
 
 
 /* 注文リストの横並び設定 */
@@ -152,13 +193,31 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  /*display: block;*/
   width: 100%;
-  padding: 10px;
+  padding: 12px; /* 少し太らせて押しやすく */
   margin: 10px 0;
   border: 1px solid #ddd;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
+
+  /* 🌟 ここが修正ポイント！ */
+  background-color: #ffffff; /* 背景を白に固定 */
+  color: #333333;           /* 文字を濃いグレーに固定 */
+  font-weight: 500;         /* 文字を少しだけ太くして読みやすく */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05); /* ほんのり影をつけて立体感を出す */
+}
+
+/* ボタンを押したときの反応（フィードバック） */
+.topping-select-btn:active {
+  background-color: #f0f0f0;
+  transform: scale(0.98); /* わずかに小さくして「押した感」を出す */
+}
+
+/* トッピング個数の色も念のため再確認 */
+.topping-count {
+  font-weight: bold;
+  color: #d35400; /* 視認性の高いオレンジ */
+  margin-left: 10px;
 }
 
 .close-modal-btn {
@@ -345,6 +404,25 @@
   font-size: 0.85em;
   margin-top: 4px;
 }
+
+/* 右端の削除ボタン（×） */
+.delete-order-btn {
+  background: none;
+  border: none;
+  color: #ff7675; /* 削除とわかる赤系 */
+  font-size: 22px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-left: 10px;
+  padding: 0 5px;
+  display: flex;
+  align-items: center;
+}
+
+.delete-order-btn:hover {
+  color: #d63031;
+}
+
 /*
 .discount-tag {
   color: #ff0000;
