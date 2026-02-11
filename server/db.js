@@ -18,7 +18,7 @@ import { fileURLToPath } from "url"; // 🌟 追加
 const { Pool } = pkg;
 
 // .env ファイルに書かれた内容を process.env に読み込ませる
-// dotenv.config(); 
+//dotenv.config(); 
 
 // 🌟 現在のファイルの場所から .env の絶対パスを計算する
 const __filename = fileURLToPath(import.meta.url);
