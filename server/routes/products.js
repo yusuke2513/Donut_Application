@@ -21,4 +21,17 @@ router.get("/", async (req, res) => {
   }
 });
 
+// products.js の例
+router.get("/", async (req, res) => {
+  try {
+    console.log("API: 商品データを取得開始します..."); // 🌟 これを追加
+    const result = await pool.query("SELECT * FROM products");
+    console.log("取得したデータ数:", result.rows.length); // 🌟 実際に何件取れたか表示
+    res.json(result.rows);
+  } catch (err) {
+    console.error("SQLエラー詳細:", err); // 🌟 エラー内容を詳しく出す
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 export default router;
