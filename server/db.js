@@ -18,8 +18,9 @@ import { fileURLToPath } from "url"; // 🌟 追加
 const { Pool } = pkg;
 
 // .env ファイルに書かれた内容を process.env に読み込ませる
-//dotenv.config(); 
+dotenv.config(); 
 
+/*
 // 🌟 現在のファイルの場所から .env の絶対パスを計算する
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -34,4 +35,15 @@ export const pool = new Pool({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
+});
+*/
+
+export const pool = new Pool({
+  // 🌟 ポイント1: 個別の host や port ではなく、URLを丸ごと使う
+  connectionString: process.env.DATABASE_URL,
+  
+  // 🌟 ポイント2: NeonなどのクラウドDB接続には SSL 設定が必須
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
