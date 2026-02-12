@@ -40,27 +40,40 @@ export const calculateFinalTotal = (orders) => {
 
 // database/orderLogic.js
 
+// database/orderLogic.js
+
 export const calculateFinalTotal = (orders) => {
-  // 1. 小計の計算（(商品単価 + トッピング単価合計) × 数量）
+  if (!orders || orders.length === 0) {
+    return { total: 0, discount: 0, finalTotal: 0, numTrios: 0, numCombos: 0 };
+  }
+
+  // 1. 小計の計算（(単価 + トッピング単価合計) × 数量）
   const total = orders.reduce((sum, item) => {
-    const toppingSum = item.toppings?.reduce((tSum, t) => tSum + t.price, 0) || 0;
+    const toppingSum = item.toppings?.reduce((tSum, t) => tSum + (t.price || 0), 0) || 0;
     const itemTotal = (item.price + toppingSum) * (item.quantity || 1);
     return sum + itemTotal;
   }, 0);
 
-  // 2. セット割引の判定（個数ベースで集計）
-  const donutsCount = orders
+  // 2. 個数の集計
+  let donutsCount = orders
     .filter((i) => i.product_type === "donut")
     .reduce((s, i) => s + (i.quantity || 1), 0);
 
-  const drinksCount = orders
+  let drinksCount = orders
     .filter((i) => i.product_type === "drink")
     .reduce((s, i) => s + (i.quantity || 1), 0);
 
-  // ドーナツとドリンクのペア数
-  const setCount = Math.min(donutsCount, drinksCount);
-  const discount = setCount * 100; // 1セットにつき100円引き
+  // 3. 値引きの計算ロジック
+  // まずは「トリオ（ドーナツ2 + ドリンク1）」を優先してカウント
+  const numTrios = Math.min(Math.floor(donutsCount / 2), drinksCount);
+  const remainingDonuts = donutsCount - numTrios * 2;
+  const remainingDrinks = drinksCount - numTrios;
+
+  // 残ったドーナツとドリンクで「コンビ（ドーナツ1 + ドリンク1）」をカウント
+  const numCombos = Math.min(remainingDonuts, remainingDrinks);
+
+  const discount = (numTrios * 70) + (numCombos * 30);
   const finalTotal = total - discount;
 
-  return { total, discount, finalTotal, setCount };
+  return { total, discount, finalTotal, numTrios, numCombos };
 };

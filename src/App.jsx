@@ -212,7 +212,8 @@ function App() {
     );
   };
 
-  const { total, discount, finalTotal, setCount } = calculateFinalTotal(orders);
+  const { total, discount, finalTotal, numTrios, numCombos } =
+    calculateFinalTotal(orders);
 
   return (
     <div className="container">
@@ -581,6 +582,42 @@ function App() {
             <span>{total}円</span>
           </div>
           {/* ... 割引や合計表示 ... */}
+          {/* 🌟 割引メッセージの表示エリア */}
+          {discount > 0 && (
+            <div
+              className="discount-messages"
+              style={{
+                margin: "10px 0",
+                padding: "10px",
+                backgroundColor: "#fff9c4",
+                borderRadius: "8px",
+                border: "1px dashed #fbc02d",
+              }}
+            >
+              {numTrios > 0 && (
+                <div
+                  style={{
+                    color: "#f57c00",
+                    fontWeight: "bold",
+                    fontSize: "0.9rem",
+                  }}
+                >
+                  🍩🍩🥤 ドーナツトリオ適用！ (x{numTrios})：-{numTrios * 70}円
+                </div>
+              )}
+              {numCombos > 0 && (
+                <div
+                  style={{
+                    color: "#f57c00",
+                    fontWeight: "bold",
+                    fontSize: "0.9rem",
+                  }}
+                >
+                  🍩🥤 ドーナツコンビ適用！ (x{numCombos})：-{numCombos * 30}円
+                </div>
+              )}
+            </div>
+          )}
           <button
             className="checkout-button"
             onClick={handleCheckout}
