@@ -15,6 +15,14 @@ function App() {
   const [customizingProduct, setCustomizingProduct] = useState(null); // カスタム中の商品を保存
   const [isGroupingMode, setIsGroupingMode] = useState(false); // モード切替
   const [selectedItems, setSelectedItems] = useState([]); // 箱詰め用に選択された商品のインデックス
+  // uniqueBoxIds を抽出して、A, B, C... というラベルを割り当てる関数
+  const uniqueBoxIds = [
+    ...new Set(orders.map((item) => item.boxId).filter((id) => id)),
+  ];
+  const getBoxLabel = (boxId) => {
+    const index = uniqueBoxIds.indexOf(boxId);
+    return index !== -1 ? `グループ ${String.fromCharCode(65 + index)}` : ""; // 65は 'A' の文字コード
+  };
 
   // useEffect を修正して、商品とトッピングを同時に取得
   useEffect(() => {
@@ -264,8 +272,9 @@ function App() {
           )}
         </div>
 
+        {/*
         <ul className="order-list">
-          {/* 🌟 修正ポイント：orders 1つに統合して、すべての情報をここで出す */}
+          {// 🌟 修正ポイント：orders 1つに統合して、すべての情報をここで出す }
           {orders.map((item, index) => (
             <li
               key={index}
@@ -297,7 +306,7 @@ function App() {
                   {item.name}
                 </span>
 
-                {/* 🌟 トッピングをバッジ形式で表示（クリックで削除可能） */}
+                {// 🌟 トッピングをバッジ形式で表示（クリックで削除可能） }
                 {item.toppings?.length > 0 && (
                   <div className="order-toppings" style={{ marginTop: "5px" }}>
                     {[...new Set(item.toppings.map((t) => t.name))].map(
@@ -328,7 +337,7 @@ function App() {
                 className="order-actions"
                 style={{ display: "flex", alignItems: "center", gap: "10px" }}
               >
-                {/* 🌟 トッピング追加ボタン（箱詰めモード以外で表示） */}
+                {// 🌟 トッピング追加ボタン（箱詰めモード以外で表示） }
                 {(item.product_type === "donut" ||
                   item.product_type === "soft_cream") &&
                   !isGroupingMode && (
@@ -344,7 +353,7 @@ function App() {
                   )}
 
                 <span className="order-price">{item.price}円</span>
-                {/* 箱詰めモードじゃない時だけ削除ボタンを出す */}
+                {// 箱詰めモードじゃない時だけ削除ボタンを出す }
                 {!isGroupingMode && (
                   <button
                     className="delete-order-btn"
@@ -358,6 +367,63 @@ function App() {
                 )}
               </div>
             </li>
+          ))}
+        </ul>
+        */}
+        <ul className="order-list" style={{ listStyle: "none", padding: 0 }}>
+          {/* 🌟 1. 箱に入っていない「バラ」の商品を表示 */}
+          {orders
+            .filter((item) => !item.boxId)
+            .map((item, index) => (
+              <li
+                key={item.orderId}
+                className="order-item" /* 既存のスタイル */
+              >
+                {/* 既存の商品表示コード */}
+              </li>
+            ))}
+
+          {/* 🌟 2. 箱詰めされたグループごとに表示 */}
+          {uniqueBoxIds.map((boxId) => (
+            <div
+              key={boxId}
+              className="box-group-container"
+              style={{
+                border: "2px solid #f57c00",
+                margin: "10px 0",
+                padding: "10px",
+                borderRadius: "12px",
+                backgroundColor: "#fffdf0",
+              }}
+            >
+              <div
+                style={{
+                  fontWeight: "bold",
+                  color: "#f57c00",
+                  marginBottom: "5px",
+                }}
+              >
+                📦 {getBoxLabel(boxId)}
+              </div>
+              {orders
+                .filter((item) => item.boxId === boxId)
+                .map((item) => (
+                  <div
+                    key={item.orderId}
+                    style={{ padding: "5px 0", borderBottom: "1px solid #eee" }}
+                  >
+                    ・{item.name} {item.price}円
+                    {!isGroupingMode && (
+                      <button
+                        onClick={() => removeOrder(item.orderId)}
+                        style={{ float: "right" }}
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                ))}
+            </div>
           ))}
         </ul>
         {/*
@@ -529,6 +595,7 @@ function App() {
               </div>
 
               {/* グループ内の各商品とトッピングを表示 */}
+              {/*
               <div
                 className="order-group-items"
                 style={{ width: "100%", paddingLeft: "10px" }}
@@ -550,6 +617,52 @@ function App() {
                     )}
                   </div>
                 ))}
+              </div>
+              */}
+              <div className="order-group-items">
+                {/* 🌟 注文内の商品を箱ごとにグルーピングして表示 */}
+                {(() => {
+                  const boxGroupsInServing = [
+                    ...new Set(group.items.map((i) => i.boxId)),
+                  ];
+                  return boxGroupsInServing.map((bId) => {
+                    const itemsInBox = group.items.filter(
+                      (i) => i.boxId === bId,
+                    );
+                    const isBox = !!bId;
+
+                    return (
+                      <div
+                        key={bId || "none"}
+                        style={
+                          isBox
+                            ? {
+                                border: "2px dashed #ffcc00",
+                                padding: "8px",
+                                borderRadius: "8px",
+                                margin: "5px 0",
+                              }
+                            : {}
+                        }
+                      >
+                        {isBox && (
+                          <div
+                            style={{
+                              fontSize: "0.8rem",
+                              color: "#f57c00",
+                              fontWeight: "bold",
+                            }}
+                          >
+                            {getBoxLabel(bId)}
+                          </div>
+                        )}
+                        {itemsInBox.map((item, idx) => (
+                          <div key={idx}>・{item.name}</div>
+                        ))}
+                      </div>
+                    );
+                  });
+                })()}
               </div>
             </li>
           ))}
