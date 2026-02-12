@@ -50,10 +50,18 @@ function App() {
         `合計 ${finalTotal}円 です。お会計を確定して提供待ちに回しますか？`,
       )
     ) {
+      let finalOrders = [...orders];
+      // 🌟 追加ポイント：もし選択中の商品があれば、自動で箱詰めを実行
+      if (isGroupingMode && selectedItems.length > 0) {
+        const boxId = `box-${Date.now()}`;
+        selectedItems.forEach((index) => {
+          finalOrders[index] = { ...finalOrders[index], boxId: boxId };
+        });
+      }
       // 🌟 注文全体を一つの「グループ」として作成
       const newOrderGroup = {
         groupId: Date.now(), // 一意のID
-        items: [...orders], // 注文された全商品を配列として保持
+        items: finalOrders, // 注文された全商品を配列として保持
         totalPrice: finalTotal,
         status: "未提供",
       };
@@ -61,6 +69,8 @@ function App() {
       setServingQueue([...servingQueue, newOrderGroup]);
       setOrders([]);
       // alert("お会計完了！提供待ちリストに送りました。");
+      setSelectedItems([]); // 選択をクリア
+      setIsGroupingMode(false); // モードを終了
     }
   };
 
