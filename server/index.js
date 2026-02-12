@@ -19,3 +19,7 @@ app.listen(3001, () => {
 */
 
 const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => {
+  // ログのメッセージを変えることで、新しいコードが動いたか確認しやすくします
+  console.log(`🍩 API server is now running on port ${PORT} (Render Mode)`);
+});
