@@ -651,7 +651,6 @@ function App() {
         </div>
       </section>
 
-      {/* 右：提供待ちリスト */}
       <section className="serving-section">
         <div className="section-header">
           <h2>📦 提供待ちリスト</h2>
@@ -661,12 +660,12 @@ function App() {
         </div>
         <ul className="serving-list">
           {servingQueue.map((group, index) => {
-            // 🌟 1. この注文グループ内の「箱ID」を抽出
+            // 箱IDの抽出
             const boxIdsInGroup = [
               ...new Set(group.items.map((i) => i.boxId).filter((id) => id)),
             ];
 
-            // 🌟 2. 商品を集計するヘルパー関数（名前、トッピング、IN/TO、箱IDが同じなら合算）
+            // 🌟 集計用ヘルパー関数（同じ名前・トッピング・IN/TOをまとめる）
             const getSummarizedItems = (items) => {
               const summary = [];
               items.forEach((item) => {
@@ -675,9 +674,7 @@ function App() {
                     ?.map((t) => t.name)
                     .sort()
                     .join(",") || "";
-                // 全く同じ条件のものを探すためのキーを作成
-                const key = `${item.name}-${toppingKey}-${item.orderType}-${item.boxId}`;
-
+                const key = `${item.name}-${toppingKey}-${item.orderType}`;
                 const existing = summary.find((s) => s.summaryKey === key);
                 if (existing) {
                   existing.totalQty += item.quantity || 1;
@@ -692,8 +689,6 @@ function App() {
               return summary;
             };
 
-            const allSummarized = getSummarizedItems(group.items);
-
             return (
               <li
                 key={group.groupId}
@@ -705,6 +700,7 @@ function App() {
                   flexDirection: "column",
                 }}
               >
+                {/* 左上に注文No */}
                 <div style={{ marginBottom: "10px" }}>
                   <strong style={{ fontSize: "1.2rem", color: "#2c3e50" }}>
                     注文No.{index + 1}
@@ -715,31 +711,33 @@ function App() {
                   className="order-group-items"
                   style={{ width: "100%", paddingBottom: "40px" }}
                 >
-                  {/* 🌟 3. バラの商品（集計済み）を表示 */}
-                  {/* 🌟 修正ポイント：バラの商品を枠（薄いグレーの枠）で囲む */}
-                  {group.items.filter((i) => !i.boxId).length > 0 && (
-                    <div
-                      style={{
-                        border: "2px solid #e0e0e0",
-                        padding: "8px",
-                        borderRadius: "8px",
-                        margin: "8px 0",
-                        backgroundColor: "#f9f9f9",
-                      }}
-                    >
+                  {/* 🌟 1. バラの商品（集計して表示） */}
+                  {(() => {
+                    const looseItems = group.items.filter((i) => !i.boxId);
+                    if (looseItems.length === 0) return null;
+                    const looseSummary = getSummarizedItems(looseItems);
+
+                    return (
                       <div
                         style={{
-                          fontSize: "0.8rem",
-                          color: "#666",
-                          fontWeight: "bold",
-                          marginBottom: "5px",
+                          border: "2px solid #e0e0e0",
+                          padding: "8px",
+                          borderRadius: "8px",
+                          margin: "8px 0",
+                          backgroundColor: "#f9f9f9",
                         }}
                       >
-                        バラの商品
-                      </div>
-                      {group.items
-                        .filter((i) => !i.boxId)
-                        .map((item, idx) => (
+                        <div
+                          style={{
+                            fontSize: "0.8rem",
+                            color: "#666",
+                            fontWeight: "bold",
+                            marginBottom: "5px",
+                          }}
+                        >
+                          バラの商品
+                        </div>
+                        {looseSummary.map((item, idx) => (
                           <div key={idx} style={{ marginBottom: "4px" }}>
                             <span
                               style={{
@@ -753,39 +751,47 @@ function App() {
                             >
                               {item.orderType}
                             </span>
-                            ・{item.name} ({item.quantity}個)
+                            ・{item.name}{" "}
+                            <strong
+                              style={{ color: "#e53935", marginLeft: "5px" }}
+                            >
+                              x{item.totalQty}
+                            </strong>
                             {item.toppings?.length > 0 &&
                               ` (${item.toppings.map((t) => t.name).join(", ")})`}
                           </div>
                         ))}
-                    </div>
-                  )}
+                      </div>
+                    );
+                  })()}
 
-                  {/* 🌟 4. 箱詰め商品（集計済み）を表示 */}
-                  {boxIdsInGroup.map((bId, idx) => (
-                    <div
-                      key={bId}
-                      style={{
-                        border: "2px dashed #ffcc00",
-                        padding: "8px",
-                        borderRadius: "8px",
-                        margin: "8px 0",
-                        backgroundColor: "#fffdf0",
-                      }}
-                    >
+                  {/* 🌟 2. 箱詰め商品（集計して表示） */}
+                  {boxIdsInGroup.map((bId, idx) => {
+                    const boxItems = group.items.filter((i) => i.boxId === bId);
+                    const boxSummary = getSummarizedItems(boxItems);
+
+                    return (
                       <div
+                        key={bId}
                         style={{
-                          fontSize: "0.8rem",
-                          color: "#f57c00",
-                          fontWeight: "bold",
+                          border: "2px dashed #ffcc00",
+                          padding: "8px",
+                          borderRadius: "8px",
+                          margin: "8px 0",
+                          backgroundColor: "#fffdf0",
                         }}
                       >
-                        グループ {String.fromCharCode(65 + idx)}
-                      </div>
-                      {allSummarized
-                        .filter((i) => i.boxId === bId)
-                        .map((item, i) => (
-                          <div key={i}>
+                        <div
+                          style={{
+                            fontSize: "0.8rem",
+                            color: "#f57c00",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          グループ {String.fromCharCode(65 + idx)}
+                        </div>
+                        {boxSummary.map((item, i) => (
+                          <div key={i} style={{ marginBottom: "2px" }}>
                             <span
                               style={{
                                 fontSize: "0.7rem",
@@ -798,9 +804,9 @@ function App() {
                             >
                               {item.orderType}
                             </span>
-                            ・{item.name}
+                            ・{item.name}{" "}
                             <strong
-                              style={{ marginLeft: "5px", color: "#e53935" }}
+                              style={{ color: "#e53935", marginLeft: "5px" }}
                             >
                               x{item.totalQty}
                             </strong>
@@ -808,10 +814,12 @@ function App() {
                               ` (${item.toppings.map((t) => t.name).join(", ")})`}
                           </div>
                         ))}
-                    </div>
-                  ))}
+                      </div>
+                    );
+                  })}
                 </div>
 
+                {/* 右下に提供ボタン */}
                 <div
                   style={{
                     position: "absolute",
