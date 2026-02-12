@@ -304,7 +304,7 @@ function App() {
             }}
           >
             {isGroupingMode
-              ? "✅ 選択を完了して箱にまとめる"
+              ? "❌ キャンセルする"
               : "📦 注文をまとめて箱に入れる"}
           </button>
           {isGroupingMode && selectedItems.length > 0 && (
@@ -716,30 +716,50 @@ function App() {
                   style={{ width: "100%", paddingBottom: "40px" }}
                 >
                   {/* 🌟 3. バラの商品（集計済み）を表示 */}
-                  {allSummarized
-                    .filter((i) => !i.boxId)
-                    .map((item, idx) => (
-                      <div key={idx} style={{ marginBottom: "4px" }}>
-                        <span
-                          style={{
-                            fontSize: "0.7rem",
-                            background: "#333",
-                            color: "#fff",
-                            padding: "2px 4px",
-                            borderRadius: "3px",
-                            marginRight: "5px",
-                          }}
-                        >
-                          {item.orderType}
-                        </span>
-                        ・{item.name}
-                        <strong style={{ marginLeft: "5px", color: "#e53935" }}>
-                          x{item.totalQty}
-                        </strong>
-                        {item.toppings?.length > 0 &&
-                          ` (${item.toppings.map((t) => t.name).join(", ")})`}
+                  {/* 🌟 修正ポイント：バラの商品を枠（薄いグレーの枠）で囲む */}
+                  {group.items.filter((i) => !i.boxId).length > 0 && (
+                    <div
+                      style={{
+                        border: "2px solid #e0e0e0",
+                        padding: "8px",
+                        borderRadius: "8px",
+                        margin: "8px 0",
+                        backgroundColor: "#f9f9f9",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: "0.8rem",
+                          color: "#666",
+                          fontWeight: "bold",
+                          marginBottom: "5px",
+                        }}
+                      >
+                        バラの商品
                       </div>
-                    ))}
+                      {group.items
+                        .filter((i) => !i.boxId)
+                        .map((item, idx) => (
+                          <div key={idx} style={{ marginBottom: "4px" }}>
+                            <span
+                              style={{
+                                fontSize: "0.7rem",
+                                background: "#333",
+                                color: "#fff",
+                                padding: "2px 4px",
+                                borderRadius: "3px",
+                                marginRight: "5px",
+                              }}
+                            >
+                              {item.orderType}
+                            </span>
+                            ・{item.name} ({item.quantity}個)
+                            {item.toppings?.length > 0 &&
+                              ` (${item.toppings.map((t) => t.name).join(", ")})`}
+                          </div>
+                        ))}
+                    </div>
+                  )}
 
                   {/* 🌟 4. 箱詰め商品（集計済み）を表示 */}
                   {boxIdsInGroup.map((bId, idx) => (
