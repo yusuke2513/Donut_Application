@@ -618,6 +618,29 @@ function App() {
               )}
             </div>
           )}
+          <hr
+            style={{
+              border: "none",
+              borderTop: "1px solid #ddd",
+              margin: "10px 0",
+            }}
+          />
+
+          {/* 3. 最終的な合計金額 */}
+          <div
+            className="summary-row final-total"
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <h3 style={{ margin: 0 }}>合計金額:</h3>
+            <h3 style={{ margin: 0, color: "#2c3e50", fontSize: "1.6rem" }}>
+              {finalTotal}円
+            </h3>
+          </div>
+          
           <button
             className="checkout-button"
             onClick={handleCheckout}
