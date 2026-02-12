@@ -702,30 +702,113 @@ function App() {
       {/* トッピングモーダル */}
       {customizingProduct && (
         <div className="modal-overlay">
-          <div className="topping-modal" style={{ maxWidth: "500px", width: "90%" }}>
+          <div
+            className="topping-modal"
+            style={{ maxWidth: "500px", width: "90%" }}
+          >
             <h3>{customizingProduct.name} のカスタマイズ</h3>
             <div className="variation-section" style={{ marginBottom: "20px" }}>
-              <p style={{ fontWeight: "bold", marginBottom: "10px" }}>バリエーションを選択</p>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-                {customizingProduct.product_type === "donut" && customizingProduct.name !== "milkyボールドーナツ" &&
+              <p style={{ fontWeight: "bold", marginBottom: "10px" }}>
+                バリエーションを選択
+              </p>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "10px",
+                }}
+              >
+                {customizingProduct.product_type === "donut" &&
+                  customizingProduct.name !== "milkyボールドーナツ" &&
                   ["プレーン", "チョコレート", "季節限定"].map((v) => (
-                    <button key={v} onClick={() => setSelectedVariation(v)} style={{ backgroundColor: selectedVariation === v ? "#2c3e50" : "#f5f5f5", color: selectedVariation === v ? "white" : "black", padding: "10px", borderRadius: "5px" }}>{v}</button>
+                    <button
+                      key={v}
+                      onClick={() => setSelectedVariation(v)}
+                      style={{
+                        backgroundColor:
+                          selectedVariation === v ? "#2c3e50" : "#f5f5f5",
+                        color: selectedVariation === v ? "white" : "black",
+                        padding: "10px",
+                        borderRadius: "5px",
+                      }}
+                    >
+                      {v}
+                    </button>
                   ))}
-                {customizingProduct.product_type === "drink" && ["Ice", "Hot"].map((v) => (
-                  <button key={v} onClick={() => setSelectedVariation(v)} style={{ backgroundColor: selectedVariation === v ? "#2c3e50" : "#f5f5f5", color: selectedVariation === v ? "white" : "black", padding: "10px", borderRadius: "5px" }}>{v}</button>
-                ))}
-                {customizingProduct.product_type === "soft_cream" && ["プレミアムmilky", "チョコ", "ミックス"].map((v) => (
-                  <button key={v} onClick={() => setSelectedVariation(v)} style={{ backgroundColor: selectedVariation === v ? "#2c3e50" : "#f5f5f5", color: selectedVariation === v ? "white" : "black", padding: "10px", borderRadius: "5px" }}>{v}</button>
-                ))}
+                {customizingProduct.product_type === "drink" &&
+                  ["Ice", "Hot"].map((v) => (
+                    <button
+                      key={v}
+                      onClick={() => setSelectedVariation(v)}
+                      style={{
+                        backgroundColor:
+                          selectedVariation === v ? "#2c3e50" : "#f5f5f5",
+                        color: selectedVariation === v ? "white" : "black",
+                        padding: "10px",
+                        borderRadius: "5px",
+                      }}
+                    >
+                      {v}
+                    </button>
+                  ))}
+                {customizingProduct.product_type === "soft_cream" &&
+                  ["プレミアムmilky", "チョコ", "ミックス"].map((v) => (
+                    <button
+                      key={v}
+                      onClick={() => setSelectedVariation(v)}
+                      style={{
+                        backgroundColor:
+                          selectedVariation === v ? "#2c3e50" : "#f5f5f5",
+                        color: selectedVariation === v ? "white" : "black",
+                        padding: "10px",
+                        borderRadius: "5px",
+                      }}
+                    >
+                      {v}
+                    </button>
+                  ))}
               </div>
             </div>
-            <div className="topping-section" style={{ borderTop: "1px solid #eee", paddingTop: "15px" }}>
-              <p style={{ fontWeight: "bold", marginBottom: "10px" }}>トッピングを追加</p>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+            <div
+              className="topping-section"
+              style={{ borderTop: "1px solid #eee", paddingTop: "15px" }}
+            >
+              <p style={{ fontWeight: "bold", marginBottom: "10px" }}>
+                トッピングを追加
+              </p>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "10px",
+                }}
+              >
                 {availableToppings.map((t) => {
-                  const isSelected = tempToppings.some((item) => item.name === t.name);
+                  const isSelected = tempToppings.some(
+                    (item) => item.name === t.name,
+                  );
                   return (
-                    <button key={t.name} onClick={() => { isSelected ? setTempToppings(tempToppings.filter((item) => item.name !== t.name)) : setTempToppings([...tempToppings, t]); }} style={{ backgroundColor: isSelected ? "#ffcc00" : "#f5f5f5", border: isSelected ? "2px solid #f57c00" : "1px solid #ddd", padding: "8px", borderRadius: "5px", fontSize: "0.8rem" }}>
+                    <button
+                      key={t.name}
+                      onClick={() => {
+                        isSelected
+                          ? setTempToppings(
+                              tempToppings.filter(
+                                (item) => item.name !== t.name,
+                              ),
+                            )
+                          : setTempToppings([...tempToppings, t]);
+                      }}
+                      style={{
+                        backgroundColor: isSelected ? "#ffcc00" : "#f5f5f5",
+                        border: isSelected
+                          ? "2px solid #f57c00"
+                          : "1px solid #ddd",
+                        padding: "8px",
+                        borderRadius: "5px",
+                        fontSize: "0.8rem",
+                      }}
+                    >
                       {t.name} (+{t.price}円) {isSelected && "✅"}
                     </button>
                   );
@@ -733,10 +816,48 @@ function App() {
               </div>
             </div>
             <div style={{ marginTop: "25px", display: "flex", gap: "10px" }}>
-              <button onClick={() => { addOrder(customizingProduct, selectedVariation, tempToppings); setCustomizingProduct(null); setSelectedVariation(null); setTempToppings([]); }} disabled={!selectedVariation && customizingProduct.name !== "milkyボールドーナツ"} style={{ flex: 2, padding: "15px", backgroundColor: "#4caf50", color: "white", borderRadius: "8px", fontWeight: "bold", opacity: (!selectedVariation && customizingProduct.name !== "milkyボールドーナツ") ? 0.5 : 1 }}>
+              <button
+                onClick={() => {
+                  addOrder(customizingProduct, selectedVariation, tempToppings);
+                  setCustomizingProduct(null);
+                  setSelectedVariation(null);
+                  setTempToppings([]);
+                }}
+                disabled={
+                  !selectedVariation &&
+                  customizingProduct.name !== "milkyボールドーナツ"
+                }
+                style={{
+                  flex: 2,
+                  padding: "15px",
+                  backgroundColor: "#4caf50",
+                  color: "white",
+                  borderRadius: "8px",
+                  fontWeight: "bold",
+                  opacity:
+                    !selectedVariation &&
+                    customizingProduct.name !== "milkyボールドーナツ"
+                      ? 0.5
+                      : 1,
+                }}
+              >
                 確定して追加
               </button>
-              <button onClick={() => { setCustomizingProduct(null); setSelectedVariation(null); setTempToppings([]); }} style={{ flex: 1, padding: "15px", backgroundColor: "#ccc", borderRadius: "8px" }}>キャンセル</button>
+              <button
+                onClick={() => {
+                  setCustomizingProduct(null);
+                  setSelectedVariation(null);
+                  setTempToppings([]);
+                }}
+                style={{
+                  flex: 1,
+                  padding: "15px",
+                  backgroundColor: "#ccc",
+                  borderRadius: "8px",
+                }}
+              >
+                キャンセル
+              </button>
             </div>
           </div>
         </div>
