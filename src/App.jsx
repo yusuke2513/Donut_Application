@@ -26,6 +26,7 @@ function App() {
   // 🌟 App関数の冒頭（useStateの集まり）に追加
   const [orderType, setOrderType] = useState("TO"); // 初期値はテイクアウト(TO)
   const [tempToppings, setTempToppings] = useState([]); // モーダル内で一時的に選ぶトッピング
+  const [selectedVariation, setSelectedVariation] = useState(null); // 味や温度
 
   // 🌟 個数を変更する関数
   const updateQuantity = (orderId, delta) => {
@@ -38,15 +39,20 @@ function App() {
     );
   };
 
-  // 🌟 addOrderを「トッピングとイートイン情報」を受け取れるように修正
-  const addOrder = (product, toppings = []) => {
+  // 🌟 バリエーション名とトッピングを受け取って注文に追加する
+  const addOrder = (product, variationName, toppings = []) => {
+    const finalName = variationName
+      ? `${product.name} (${variationName})`
+      : product.name;
+
     setOrders([
       ...orders,
       {
         ...product,
+        name: finalName,
         orderId: Date.now(),
         toppings: toppings,
-        orderType: orderType, // 現在選択されているIN/TOを保存
+        orderType: orderType, // 前のターンで追加したIN/TO情報
         quantity: 1,
         status: "未提供",
       },
@@ -694,60 +700,176 @@ function App() {
       </button>
 
       {/* トッピングモーダル */}
-      {toppingTargetId && (
+      {/* カスタム選択モーダル（味・トッピングを選んでから確定） */}
+      {customizingProduct && (
         <div className="modal-overlay">
-          <div className="topping-modal">
-            <h3>トッピングを追加</h3>
-            {(() => {
-              const currentOrder = orders.find(
-                (o) => o.orderId === toppingTargetId,
-              );
-              return (
-                <>
-                  <p>対象: {currentOrder?.name}</p>
-                  <div className="topping-options">
-                    {availableToppings.map((t) => {
-                      const count =
-                        currentOrder?.toppings?.filter(
-                          (item) => item.name === t.name,
-                        ).length || 0;
-                      return (
-                        <div
-                          key={t.id || t.name}
-                          className="topping-option-row"
-                        >
-                          <button
-                            className="topping-select-btn"
-                            onClick={() => addTopping(toppingTargetId, t)}
-                          >
-                            {t.name} (+{t.price}円){" "}
-                            {count > 0 && (
-                              <span className="topping-count"> ×{count}</span>
-                            )}
-                          </button>
-                          {count > 0 && (
-                            <button
-                              className="topping-minus-btn"
-                              onClick={() =>
-                                removeTopping(toppingTargetId, t.name)
-                              }
-                            >
-                              ー
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </>
-              );
-            })()}
-            <button
-              className="close-modal-btn"
-              onClick={() => setToppingTargetId(null)}
+          <div
+            className="topping-modal"
+            style={{ maxWidth: "500px", width: "90%" }}
+          >
+            <h3>{customizingProduct.name} のカスタマイズ</h3>
+
+            {/* 1. バリエーション選択（味・温度） */}
+            <div className="variation-section" style={{ marginBottom: "20px" }}>
+              <p style={{ fontWeight: "bold", marginBottom: "10px" }}>
+                バリエーションを選択
+              </p>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "10px",
+                }}
+              >
+                {/* ドーナツの味 */}
+                {customizingProduct.product_type === "donut" &&
+                  customizingProduct.name !== "milkyボールドーナツ" &&
+                  ["プレーン", "チョコレート", "季節限定"].map((v) => (
+                    <button
+                      key={v}
+                      onClick={() => setSelectedVariation(v)}
+                      style={{
+                        backgroundColor:
+                          selectedVariation === v ? "#2c3e50" : "#f5f5f5",
+                        color: selectedVariation === v ? "white" : "black",
+                        padding: "10px",
+                        borderRadius: "5px",
+                      }}
+                    >
+                      {v}
+                    </button>
+                  ))}
+                {/* ドリンクの温度 */}
+                {customizingProduct.product_type === "drink" &&
+                  ["Ice", "Hot"].map((v) => (
+                    <button
+                      key={v}
+                      onClick={() => setSelectedVariation(v)}
+                      style={{
+                        backgroundColor:
+                          selectedVariation === v ? "#2c3e50" : "#f5f5f5",
+                        color: selectedVariation === v ? "white" : "black",
+                        padding: "10px",
+                        borderRadius: "5px",
+                      }}
+                    >
+                      {v}
+                    </button>
+                  ))}
+                {/* ソフトクリームの味 */}
+                {customizingProduct.product_type === "soft_cream" &&
+                  ["プレミアムmilky", "チョコ", "ミックス"].map((v) => (
+                    <button
+                      key={v}
+                      onClick={() => setSelectedVariation(v)}
+                      style={{
+                        backgroundColor:
+                          selectedVariation === v ? "#2c3e50" : "#f5f5f5",
+                        color: selectedVariation === v ? "white" : "black",
+                        padding: "10px",
+                        borderRadius: "5px",
+                      }}
+                    >
+                      {v}
+                    </button>
+                  ))}
+              </div>
+            </div>
+
+            {/* 2. トッピング選択（複数選択可能） */}
+            <div
+              className="topping-section"
+              style={{ borderTop: "1px solid #eee", paddingTop: "15px" }}
             >
-              完了
-            </button>
+              <p style={{ fontWeight: "bold", marginBottom: "10px" }}>
+                トッピングを追加（任意）
+              </p>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "10px",
+                }}
+              >
+                {availableToppings.map((t) => {
+                  const isSelected = tempToppings.some(
+                    (item) => item.name === t.name,
+                  );
+                  return (
+                    <button
+                      key={t.name}
+                      onClick={() => {
+                        if (isSelected)
+                          setTempToppings(
+                            tempToppings.filter((item) => item.name !== t.name),
+                          );
+                        else setTempToppings([...tempToppings, t]);
+                      }}
+                      style={{
+                        backgroundColor: isSelected ? "#ffcc00" : "#f5f5f5",
+                        border: isSelected
+                          ? "2px solid #f57c00"
+                          : "1px solid #ddd",
+                        padding: "8px",
+                        borderRadius: "5px",
+                        fontSize: "0.8rem",
+                      }}
+                    >
+                      {t.name} (+{t.price}円) {isSelected && "✅"}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 3. 確定ボタンエリア */}
+            <div style={{ marginTop: "25px", display: "flex", gap: "10px" }}>
+              <button
+                onClick={() => {
+                  addOrder(customizingProduct, selectedVariation, tempToppings);
+                  // 状態をリセットして閉じる
+                  setCustomizingProduct(null);
+                  setSelectedVariation(null);
+                  setTempToppings([]);
+                }}
+                disabled={
+                  !selectedVariation &&
+                  customizingProduct.name !== "milkyボールドーナツ"
+                } // バリエーション必須
+                style={{
+                  flex: 2,
+                  padding: "15px",
+                  backgroundColor: "#4caf50",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontWeight: "bold",
+                  opacity:
+                    !selectedVariation &&
+                    customizingProduct.name !== "milkyボールドーナツ"
+                      ? 0.5
+                      : 1,
+                }}
+              >
+                注文を確定して追加
+              </button>
+              <button
+                onClick={() => {
+                  setCustomizingProduct(null);
+                  setSelectedVariation(null);
+                  setTempToppings([]);
+                }}
+                style={{
+                  flex: 1,
+                  padding: "15px",
+                  backgroundColor: "#ccc",
+                  border: "none",
+                  borderRadius: "8px",
+                }}
+              >
+                キャンセル
+              </button>
+            </div>
           </div>
         </div>
       )}
