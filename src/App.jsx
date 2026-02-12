@@ -13,6 +13,8 @@ function App() {
   const [availableToppings, setAvailableToppings] = useState([]);
   const [toppingTargetId, setToppingTargetId] = useState(null);
   const [customizingProduct, setCustomizingProduct] = useState(null); // カスタム中の商品を保存
+  const [isGroupingMode, setIsGroupingMode] = useState(false); // モード切替
+  const [selectedItems, setSelectedItems] = useState([]); // 箱詰め用に選択された商品のインデックス
 
   // useEffect を修正して、商品とトッピングを同時に取得
   useEffect(() => {
@@ -63,6 +65,29 @@ function App() {
 
     // 🌟 それ以外は「カスタム中」としてステートに保存（モーダルが開く）
     setCustomizingProduct(product);
+  };
+
+  const handleCreateBox = () => {
+    const boxId = `box-${Date.now()}`; // 重複しない箱IDを作成
+    const newCart = [...cartItems];
+
+    selectedItems.forEach((index) => {
+      newCart[index] = { ...newCart[index], boxId: boxId }; // 選択した商品にIDを付与
+    });
+
+    setCartItems(newCart);
+    setSelectedItems([]); // 選択をリセット
+    setIsGroupingMode(false); // モード終了
+  };
+
+  const toggleItemSelection = (index) => {
+    if (selectedItems.includes(index)) {
+      // 🌟 すでに選択されている場合：配列から削除（解除）
+      setSelectedItems(selectedItems.filter((id) => id !== index));
+    } else {
+      // 🌟 選択されていない場合：配列に追加（選択）
+      setSelectedItems([...selectedItems, index]);
+    }
   };
 
   // 🌟 提供待ちリスト内のステータスを切り替える関数（グループ単位）
@@ -205,13 +230,110 @@ function App() {
       {/* 中央：現在の注文リストと合計（レジ機能） */}
       <section className="order-section">
         <h2>📋 現在の注文</h2>
+        {/* 🌟 箱詰めモードの切り替えボタン */}
+        <div className="grouping-controls" style={{ marginBottom: "10px" }}>
+          <button
+            className={`group-btn ${isGroupingMode ? "active" : ""}`}
+            onClick={() => {
+              setIsGroupingMode(!isGroupingMode);
+              if (!isGroupingMode) setSelectedItems([]); // モード終了時に選択リセット
+            }}
+            style={{
+              backgroundColor: isGroupingMode ? "#fbc02d" : "#eee",
+              padding: "10px",
+              borderRadius: "5px",
+              width: "100%",
+            }}
+          >
+            {isGroupingMode
+              ? "✅ 選択を完了して箱にまとめる"
+              : "📦 注文をまとめて箱に入れる"}
+          </button>
+          {isGroupingMode && selectedItems.length > 0 && (
+            <button
+              onClick={handleCreateBox}
+              style={{
+                marginTop: "5px",
+                width: "100%",
+                backgroundColor: "#4caf50",
+                color: "white",
+              }}
+            >
+              選択した{selectedItems.length}点を一つの箱にする
+            </button>
+          )}
+        </div>
+
+        <ul className="order-list">
+          {/* 🌟 修正ポイント：cartItems 1つに統合して、すべての情報をここで出す */}
+          {cartItems.map((item, index) => (
+            <li
+              key={index}
+              className="order-item"
+              onClick={() => isGroupingMode && toggleItemSelection(index)}
+              style={{
+                cursor: isGroupingMode ? "pointer" : "default",
+                backgroundColor: selectedItems.includes(index)
+                  ? "#fff9c4"
+                  : "transparent",
+                border: selectedItems.includes(index)
+                  ? "2px solid #fbc02d"
+                  : "1px solid #ddd",
+                padding: "10px",
+                margin: "5px 0",
+                borderRadius: "8px",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <div className="order-info">
+                <span className="order-name">
+                  {item.boxId && (
+                    <span style={{ color: "#f57c00", fontWeight: "bold" }}>
+                      [箱詰め]{" "}
+                    </span>
+                  )}
+                  {item.name}
+                </span>
+
+                {/* 🌟 トッピングの表示もここに入れます */}
+                {item.toppings?.length > 0 && (
+                  <div
+                    className="order-toppings"
+                    style={{ fontSize: "0.8rem", color: "#666" }}
+                  >
+                    {item.toppings.map((t) => t.name).join(", ")}
+                  </div>
+                )}
+              </div>
+
+              <div className="order-actions">
+                <span className="order-price">{item.price}円</span>
+                {/* 箱詰めモードじゃない時だけ削除ボタンを出す */}
+                {!isGroupingMode && (
+                  <button
+                    className="delete-order-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeOrder(index);
+                    }}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+        {/*
         <ul className="order-list">
           {orders.map((order) => (
             <li key={order.orderId} className="order-item">
               <div className="order-info">
                 <span className="order-name">{order.name}</span>
 
-                {/* 🌟 修正ポイント1: トッピングを個数まとめて表示し、クリックで消せるようにする */}
+                {// 修正ポイント1: トッピングを個数まとめて表示し、クリックで消せるようにする }
                 {order.toppings?.length > 0 && (
                   <div className="order-toppings">
                     {[...new Set(order.toppings.map((t) => t.name))].map(
@@ -236,7 +358,7 @@ function App() {
               </div>
 
               <div className="order-actions">
-                {/* ドーナツかソフトクリームの時だけプラスボタンを表示 */}
+                {// ドーナツかソフトクリームの時だけプラスボタンを表示 }
                 {(order.product_type === "donut" ||
                   order.product_type === "soft_cream") && (
                   <button
@@ -248,7 +370,7 @@ function App() {
                 )}
                 <span className="order-price">{order.price}円</span>
 
-                {/* 🌟 修正ポイント2: 注文自体を削除する「×」ボタンを追加 */}
+                {// 🌟 修正ポイント2: 注文自体を削除する「×」ボタンを追加 }
                 <button
                   className="delete-order-btn"
                   onClick={() => removeOrder(order.orderId)}
@@ -260,6 +382,7 @@ function App() {
             </li>
           ))}
         </ul>
+        */}
 
         {/*
         <ul className="order-list">
@@ -340,6 +463,29 @@ function App() {
                 <strong style={{ fontSize: "1.1rem", color: "#2c3e50" }}>
                   注文No.{index + 1}
                 </strong>
+                <div className="order-group-items">
+                  {/* 🌟 箱詰めされている商品をグループ表示するロジック */}
+                  {group.items.map((item, idx) => {
+                    // 同じ箱のものはまとめて枠で囲むなどの処理をここに書く
+                    return (
+                      <div
+                        key={idx}
+                        style={
+                          item.boxId
+                            ? {
+                                border: "2px solid #ffcc00",
+                                padding: "5px",
+                                borderRadius: "5px",
+                                margin: "2px 0",
+                              }
+                            : {}
+                        }
+                      >
+                        ・{item.name} {item.boxId && <small>(同じ箱)</small>}
+                      </div>
+                    );
+                  })}
+                </div>
                 <button
                   onClick={() => toggleServingStatus(group.groupId)}
                   className={`status-btn ${group.status === "提供済み" ? "paid" : "unpaid"}`}
@@ -450,7 +596,7 @@ function App() {
           </div>
         </div>
       )}
-      
+
       {/* 🌟 カスタム選択モーダル（味・温度など） */}
       {customizingProduct && (
         <div className="modal-overlay">
