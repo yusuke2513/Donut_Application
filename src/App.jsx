@@ -640,7 +640,7 @@ function App() {
               {finalTotal}円
             </h3>
           </div>
-          
+
           <button
             className="checkout-button"
             onClick={handleCheckout}
@@ -651,7 +651,7 @@ function App() {
         </div>
       </section>
 
-      {/* 右：提供待ちリスト（★レイアウト修正済み★） */}
+      {/* 右：提供待ちリスト */}
       <section className="serving-section">
         <div className="section-header">
           <h2>📦 提供待ちリスト</h2>
@@ -661,10 +661,38 @@ function App() {
         </div>
         <ul className="serving-list">
           {servingQueue.map((group, index) => {
-            // この注文グループ内の箱詰めIDを独自に抽出
+            // 🌟 1. この注文グループ内の「箱ID」を抽出
             const boxIdsInGroup = [
               ...new Set(group.items.map((i) => i.boxId).filter((id) => id)),
             ];
+
+            // 🌟 2. 商品を集計するヘルパー関数（名前、トッピング、IN/TO、箱IDが同じなら合算）
+            const getSummarizedItems = (items) => {
+              const summary = [];
+              items.forEach((item) => {
+                const toppingKey =
+                  item.toppings
+                    ?.map((t) => t.name)
+                    .sort()
+                    .join(",") || "";
+                // 全く同じ条件のものを探すためのキーを作成
+                const key = `${item.name}-${toppingKey}-${item.orderType}-${item.boxId}`;
+
+                const existing = summary.find((s) => s.summaryKey === key);
+                if (existing) {
+                  existing.totalQty += item.quantity || 1;
+                } else {
+                  summary.push({
+                    ...item,
+                    summaryKey: key,
+                    totalQty: item.quantity || 1,
+                  });
+                }
+              });
+              return summary;
+            };
+
+            const allSummarized = getSummarizedItems(group.items);
 
             return (
               <li
@@ -677,29 +705,43 @@ function App() {
                   flexDirection: "column",
                 }}
               >
-                {/* 🌟 左上に注文Noを表示 */}
                 <div style={{ marginBottom: "10px" }}>
                   <strong style={{ fontSize: "1.2rem", color: "#2c3e50" }}>
                     注文No.{index + 1}
                   </strong>
                 </div>
 
-                {/* 🌟 中央に商品リストを表示（ボタンと重ならないよう下部に余白） */}
                 <div
                   className="order-group-items"
                   style={{ width: "100%", paddingBottom: "40px" }}
                 >
-                  {/* バラの商品 */}
-                  {group.items
+                  {/* 🌟 3. バラの商品（集計済み）を表示 */}
+                  {allSummarized
                     .filter((i) => !i.boxId)
                     .map((item, idx) => (
                       <div key={idx} style={{ marginBottom: "4px" }}>
-                        ・{item.name}{" "}
+                        <span
+                          style={{
+                            fontSize: "0.7rem",
+                            background: "#333",
+                            color: "#fff",
+                            padding: "2px 4px",
+                            borderRadius: "3px",
+                            marginRight: "5px",
+                          }}
+                        >
+                          {item.orderType}
+                        </span>
+                        ・{item.name}
+                        <strong style={{ marginLeft: "5px", color: "#e53935" }}>
+                          x{item.totalQty}
+                        </strong>
                         {item.toppings?.length > 0 &&
-                          `(${item.toppings.map((t) => t.name).join(", ")})`}
+                          ` (${item.toppings.map((t) => t.name).join(", ")})`}
                       </div>
                     ))}
-                  {/* 箱詰め商品 */}
+
+                  {/* 🌟 4. 箱詰め商品（集計済み）を表示 */}
                   {boxIdsInGroup.map((bId, idx) => (
                     <div
                       key={bId}
@@ -720,20 +762,36 @@ function App() {
                       >
                         グループ {String.fromCharCode(65 + idx)}
                       </div>
-                      {group.items
+                      {allSummarized
                         .filter((i) => i.boxId === bId)
                         .map((item, i) => (
                           <div key={i}>
-                            ・{item.name}{" "}
+                            <span
+                              style={{
+                                fontSize: "0.7rem",
+                                background: "#333",
+                                color: "#fff",
+                                padding: "2px 4px",
+                                borderRadius: "3px",
+                                marginRight: "5px",
+                              }}
+                            >
+                              {item.orderType}
+                            </span>
+                            ・{item.name}
+                            <strong
+                              style={{ marginLeft: "5px", color: "#e53935" }}
+                            >
+                              x{item.totalQty}
+                            </strong>
                             {item.toppings?.length > 0 &&
-                              `(${item.toppings.map((t) => t.name).join(", ")})`}
+                              ` (${item.toppings.map((t) => t.name).join(", ")})`}
                           </div>
                         ))}
                     </div>
                   ))}
                 </div>
 
-                {/* 🌟 右下にステータスボタンを配置 */}
                 <div
                   style={{
                     position: "absolute",
