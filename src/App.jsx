@@ -887,52 +887,54 @@ function App() {
                   ))}
               </div>
             </div>
-            <div
-              className="topping-section"
-              style={{ borderTop: "1px solid #eee", paddingTop: "15px" }}
-            >
-              <p style={{ fontWeight: "bold", marginBottom: "10px" }}>
-                トッピングを追加
-              </p>
+            {customizingProduct.product_type === "soft_cream" && (
               <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "10px",
-                }}
+                className="topping-section"
+                style={{ borderTop: "1px solid #eee", paddingTop: "15px" }}
               >
-                {availableToppings.map((t) => {
-                  const isSelected = tempToppings.some(
-                    (item) => item.name === t.name,
-                  );
-                  return (
-                    <button
-                      key={t.name}
-                      onClick={() => {
-                        isSelected
-                          ? setTempToppings(
-                              tempToppings.filter(
-                                (item) => item.name !== t.name,
-                              ),
-                            )
-                          : setTempToppings([...tempToppings, t]);
-                      }}
-                      style={{
-                        backgroundColor: isSelected ? "#ffcc00" : "#f5f5f5",
-                        border: isSelected
-                          ? "2px solid #f57c00"
-                          : "1px solid #ddd",
-                        padding: "8px",
-                        borderRadius: "5px",
-                        fontSize: "0.8rem",
-                      }}
-                    >
-                      {t.name} (+{t.price}円) {isSelected && "✅"}
-                    </button>
-                  );
-                })}
+                <p style={{ fontWeight: "bold", marginBottom: "10px" }}>
+                  トッピングを追加
+                </p>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "10px",
+                  }}
+                >
+                  {availableToppings.map((t) => {
+                    const isSelected = tempToppings.some(
+                      (item) => item.name === t.name,
+                    );
+                    return (
+                      <button
+                        key={t.name}
+                        onClick={() => {
+                          isSelected
+                            ? setTempToppings(
+                                tempToppings.filter(
+                                  (item) => item.name !== t.name,
+                                ),
+                              )
+                            : setTempToppings([...tempToppings, t]);
+                        }}
+                        style={{
+                          backgroundColor: isSelected ? "#ffcc00" : "#f5f5f5",
+                          border: isSelected
+                            ? "2px solid #f57c00"
+                            : "1px solid #ddd",
+                          padding: "8px",
+                          borderRadius: "5px",
+                          fontSize: "0.8rem",
+                        }}
+                      >
+                        {t.name} (+{t.price}円) {isSelected && "✅"}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
             <div style={{ marginTop: "25px", display: "flex", gap: "10px" }}>
               <button
                 onClick={() => {
