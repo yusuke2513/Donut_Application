@@ -297,18 +297,52 @@ function App() {
                   {item.name}
                 </span>
 
-                {/* 🌟 トッピングの表示もここに入れます */}
+                {/* 🌟 トッピングをバッジ形式で表示（クリックで削除可能） */}
                 {item.toppings?.length > 0 && (
-                  <div
-                    className="order-toppings"
-                    style={{ fontSize: "0.8rem", color: "#666" }}
-                  >
-                    {item.toppings.map((t) => t.name).join(", ")}
+                  <div className="order-toppings" style={{ marginTop: "5px" }}>
+                    {[...new Set(item.toppings.map((t) => t.name))].map(
+                      (name) => {
+                        const count = item.toppings.filter(
+                          (t) => t.name === name,
+                        ).length;
+                        return (
+                          <span
+                            key={name}
+                            className="topping-badge clickable"
+                            onClick={(e) => {
+                              e.stopPropagation(); // 箱詰め選択が発動しないようにガード
+                              removeTopping(item.orderId, name);
+                            }}
+                            title="クリックで1つ削除"
+                          >
+                            +{name} {count > 1 ? `x${count}` : ""}
+                          </span>
+                        );
+                      },
+                    )}
                   </div>
                 )}
               </div>
 
-              <div className="order-actions">
+              <div
+                className="order-actions"
+                style={{ display: "flex", alignItems: "center", gap: "10px" }}
+              >
+                {/* 🌟 トッピング追加ボタン（箱詰めモード以外で表示） */}
+                {(item.product_type === "donut" ||
+                  item.product_type === "soft_cream") &&
+                  !isGroupingMode && (
+                    <button
+                      className="add-topping-trigger"
+                      onClick={(e) => {
+                        e.stopPropagation(); // 親の onClick（箱詰め選択）を防止
+                        setToppingTargetId(item.orderId);
+                      }}
+                    >
+                      ＋
+                    </button>
+                  )}
+
                 <span className="order-price">{item.price}円</span>
                 {/* 箱詰めモードじゃない時だけ削除ボタンを出す */}
                 {!isGroupingMode && (
