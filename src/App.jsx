@@ -199,7 +199,11 @@ function App() {
               className={`tab-button ${activeTab === type ? "active" : ""}`}
               onClick={() => setActiveTab(type)}
             >
-              {type === "donut" ? "ドーナツ" : type === "soft_cream" ? "ソフトクリーム" : "ドリンク"}
+              {type === "donut"
+                ? "ドーナツ"
+                : type === "soft_cream"
+                  ? "ソフトクリーム"
+                  : "ドリンク"}
             </button>
           ))}
         </div>
@@ -220,11 +224,9 @@ function App() {
         </div>
       </section>
 
-      {/* 中央：現在の注文リスト（レジ機能） */}
+      {/* 中央：現在の注文リスト */}
       <section className="order-section">
         <h2>📋 現在の注文</h2>
-        
-        {/* 箱詰めモードの操作エリア */}
         <div className="grouping-controls" style={{ marginBottom: "10px" }}>
           <button
             className={`group-btn ${isGroupingMode ? "active" : ""}`}
@@ -237,10 +239,12 @@ function App() {
               padding: "10px",
               borderRadius: "5px",
               width: "100%",
-              fontWeight: "bold"
+              fontWeight: "bold",
             }}
           >
-            {isGroupingMode ? "✅ 選択を完了して箱にまとめる" : "📦 注文をまとめて箱に入れる"}
+            {isGroupingMode
+              ? "✅ 選択を完了して箱にまとめる"
+              : "📦 注文をまとめて箱に入れる"}
           </button>
           {isGroupingMode && selectedItems.length > 0 && (
             <button
@@ -252,7 +256,7 @@ function App() {
                 color: "white",
                 padding: "10px",
                 borderRadius: "5px",
-                fontWeight: "bold"
+                fontWeight: "bold",
               }}
             >
               選択した{selectedItems.length}点を一つの箱にする
@@ -261,87 +265,164 @@ function App() {
         </div>
 
         <div className="order-list-container">
-          {/* 1. 箱に入っていない「バラ」の商品 */}
-          {orders.filter(item => !item.boxId).map((item) => {
-            const originalIndex = orders.indexOf(item);
-            return (
-              <div
-                key={item.orderId}
-                className="order-item"
-                onClick={() => isGroupingMode && toggleItemSelection(originalIndex)}
-                style={{
-                  cursor: isGroupingMode ? "pointer" : "default",
-                  backgroundColor: selectedItems.includes(originalIndex) ? "#fff9c4" : "transparent",
-                  border: selectedItems.includes(originalIndex) ? "2px solid #fbc02d" : "1px solid #ddd",
-                  padding: "10px",
-                  margin: "5px 0",
-                  borderRadius: "8px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center"
-                }}
-              >
-                <div className="order-info">
-                  <span className="order-name">{item.name}</span>
-                  {item.toppings?.length > 0 && (
-                    <div className="order-toppings">
-                      {item.toppings.map((t, i) => (
-                        <span key={i} className="topping-badge clickable" onClick={(e) => { e.stopPropagation(); removeTopping(item.orderId, t.name); }}>
-                          +{t.name}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+          {/* 1. バラの商品 */}
+          {orders
+            .filter((item) => !item.boxId)
+            .map((item) => {
+              const originalIndex = orders.indexOf(item);
+              return (
+                <div
+                  key={item.orderId}
+                  className="order-item"
+                  onClick={() =>
+                    isGroupingMode && toggleItemSelection(originalIndex)
+                  }
+                  style={{
+                    cursor: isGroupingMode ? "pointer" : "default",
+                    backgroundColor: selectedItems.includes(originalIndex)
+                      ? "#fff9c4"
+                      : "transparent",
+                    border: selectedItems.includes(originalIndex)
+                      ? "2px solid #fbc02d"
+                      : "1px solid #ddd",
+                    padding: "10px",
+                    margin: "5px 0",
+                    borderRadius: "8px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <div className="order-info">
+                    <span className="order-name">{item.name}</span>
+                    {item.toppings?.length > 0 && (
+                      <div className="order-toppings">
+                        {item.toppings.map((t, i) => (
+                          <span
+                            key={i}
+                            className="topping-badge clickable"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeTopping(item.orderId, t.name);
+                            }}
+                          >
+                            +{t.name}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div
+                    className="order-actions"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                    }}
+                  >
+                    {!isGroupingMode &&
+                      (item.product_type === "donut" ||
+                        item.product_type === "soft_cream") && (
+                        <button
+                          className="add-topping-trigger"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setToppingTargetId(item.orderId);
+                          }}
+                        >
+                          ＋
+                        </button>
+                      )}
+                    <span className="order-price">{item.price}円</span>
+                    {!isGroupingMode && (
+                      <button
+                        className="delete-order-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeOrder(item.orderId);
+                        }}
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <div className="order-actions" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  {!isGroupingMode && (item.product_type === "donut" || item.product_type === "soft_cream") && (
-                    <button className="add-topping-trigger" onClick={(e) => { e.stopPropagation(); setToppingTargetId(item.orderId); }}>＋</button>
-                  )}
-                  <span className="order-price">{item.price}円</span>
-                  {!isGroupingMode && (
-                    <button className="delete-order-btn" onClick={(e) => { e.stopPropagation(); removeOrder(item.orderId); }}>×</button>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
 
           {/* 2. 箱詰めされたグループ */}
           {uniqueBoxIds.map((boxId) => (
-            <div key={boxId} style={{ border: "2px solid #f57c00", margin: "10px 0", padding: "10px", borderRadius: "12px", backgroundColor: "#fffdf0" }}>
-              <div style={{ fontWeight: "bold", color: "#f57c00", marginBottom: "5px" }}>📦 {getBoxLabel(boxId)}</div>
-              {orders.filter(item => item.boxId === boxId).map((item) => {
-                const originalIndex = orders.indexOf(item);
-                return (
-                  <div
-                    key={item.orderId}
-                    onClick={() => isGroupingMode && toggleItemSelection(originalIndex)}
-                    style={{
-                      padding: "8px",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      backgroundColor: selectedItems.includes(originalIndex) ? "#fff9c4" : "transparent",
-                      borderRadius: "5px"
-                    }}
-                  >
-                    <div className="order-info">
-                      <span>・{item.name}</span>
-                      {item.toppings?.length > 0 && (
-                        <div className="order-toppings">
-                          {item.toppings.map((t, i) => <span key={i} className="topping-badge">+{t.name}</span>)}
-                        </div>
-                      )}
+            <div
+              key={boxId}
+              style={{
+                border: "2px solid #f57c00",
+                margin: "10px 0",
+                padding: "10px",
+                borderRadius: "12px",
+                backgroundColor: "#fffdf0",
+              }}
+            >
+              <div
+                style={{
+                  fontWeight: "bold",
+                  color: "#f57c00",
+                  marginBottom: "5px",
+                }}
+              >
+                📦 {getBoxLabel(boxId)}
+              </div>
+              {orders
+                .filter((item) => item.boxId === boxId)
+                .map((item) => {
+                  const originalIndex = orders.indexOf(item);
+                  return (
+                    <div
+                      key={item.orderId}
+                      onClick={() =>
+                        isGroupingMode && toggleItemSelection(originalIndex)
+                      }
+                      style={{
+                        padding: "8px",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        backgroundColor: selectedItems.includes(originalIndex)
+                          ? "#fff9c4"
+                          : "transparent",
+                        borderRadius: "5px",
+                      }}
+                    >
+                      <div className="order-info">
+                        <span>・{item.name}</span>
+                        {item.toppings?.length > 0 && (
+                          <div className="order-toppings">
+                            {item.toppings.map((t, i) => (
+                              <span key={i} className="topping-badge">
+                                +{t.name}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      <div className="order-actions">
+                        <span style={{ marginRight: "10px" }}>
+                          {item.price}円
+                        </span>
+                        {!isGroupingMode && (
+                          <button
+                            className="delete-order-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeOrder(item.orderId);
+                            }}
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    <div className="order-actions">
-                      <span style={{ marginRight: "10px" }}>{item.price}円</span>
-                      {!isGroupingMode && (
-                        <button className="delete-order-btn" onClick={(e) => { e.stopPropagation(); removeOrder(item.orderId); }}>×</button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
             </div>
           ))}
         </div>
@@ -372,41 +453,102 @@ function App() {
         </div>
       </section>
 
-      {/* 右：提供待ちリスト */}
+      {/* 右：提供待ちリスト（★レイアウト修正済み★） */}
       <section className="serving-section">
         <div className="section-header">
           <h2>📦 提供待ちリスト</h2>
-          <button className="reset-button" onClick={clearServedItems}>リセット</button>
+          <button className="reset-button" onClick={clearServedItems}>
+            リセット
+          </button>
         </div>
         <ul className="serving-list">
           {servingQueue.map((group, index) => {
-            const boxIdsInGroup = [...new Set(group.items.map(i => i.boxId).filter(id => id))];
+            // この注文グループ内の箱詰めIDを独自に抽出
+            const boxIdsInGroup = [
+              ...new Set(group.items.map((i) => i.boxId).filter((id) => id)),
+            ];
+
             return (
-              <li key={group.groupId} className={`serving-item ${group.status === "提供済み" ? "is-served" : ""}`}>
-                <div style={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
-                  <strong>注文No.{index + 1}</strong>
-                  <button onClick={() => toggleServingStatus(group.groupId)} className={`status-btn ${group.status === "提供済み" ? "paid" : "unpaid"}`}>
-                    {group.status}
-                  </button>
+              <li
+                key={group.groupId}
+                className={`serving-item ${group.status === "提供済み" ? "is-served" : ""}`}
+                style={{
+                  position: "relative",
+                  padding: "15px",
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                {/* 🌟 左上に注文Noを表示 */}
+                <div style={{ marginBottom: "10px" }}>
+                  <strong style={{ fontSize: "1.2rem", color: "#2c3e50" }}>
+                    注文No.{index + 1}
+                  </strong>
                 </div>
-                <div className="order-group-items" style={{ width: "100%", marginTop: "10px" }}>
+
+                {/* 🌟 中央に商品リストを表示（ボタンと重ならないよう下部に余白） */}
+                <div
+                  className="order-group-items"
+                  style={{ width: "100%", paddingBottom: "40px" }}
+                >
                   {/* バラの商品 */}
-                  {group.items.filter(i => !i.boxId).map((item, idx) => (
-                    <div key={idx}>
-                      ・{item.name} {item.toppings?.length > 0 && `(${item.toppings.map(t => t.name).join(", ")})`}
-                    </div>
-                  ))}
+                  {group.items
+                    .filter((i) => !i.boxId)
+                    .map((item, idx) => (
+                      <div key={idx} style={{ marginBottom: "4px" }}>
+                        ・{item.name}{" "}
+                        {item.toppings?.length > 0 &&
+                          `(${item.toppings.map((t) => t.name).join(", ")})`}
+                      </div>
+                    ))}
                   {/* 箱詰め商品 */}
                   {boxIdsInGroup.map((bId, idx) => (
-                    <div key={bId} style={{ border: "2px dashed #ffcc00", padding: "8px", borderRadius: "8px", margin: "5px 0", backgroundColor: "#fffdf0" }}>
-                      <div style={{ fontSize: "0.8rem", color: "#f57c00", fontWeight: "bold" }}>グループ {String.fromCharCode(65 + idx)}</div>
-                      {group.items.filter(i => i.boxId === bId).map((item, i) => (
-                        <div key={i}>
-                          ・{item.name} {item.toppings?.length > 0 && `(${item.toppings.map(t => t.name).join(", ")})`}
-                        </div>
-                      ))}
+                    <div
+                      key={bId}
+                      style={{
+                        border: "2px dashed #ffcc00",
+                        padding: "8px",
+                        borderRadius: "8px",
+                        margin: "8px 0",
+                        backgroundColor: "#fffdf0",
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: "0.8rem",
+                          color: "#f57c00",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        グループ {String.fromCharCode(65 + idx)}
+                      </div>
+                      {group.items
+                        .filter((i) => i.boxId === bId)
+                        .map((item, i) => (
+                          <div key={i}>
+                            ・{item.name}{" "}
+                            {item.toppings?.length > 0 &&
+                              `(${item.toppings.map((t) => t.name).join(", ")})`}
+                          </div>
+                        ))}
                     </div>
                   ))}
+                </div>
+
+                {/* 🌟 右下にステータスボタンを配置 */}
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: "15px",
+                    right: "15px",
+                  }}
+                >
+                  <button
+                    onClick={() => toggleServingStatus(group.groupId)}
+                    className={`status-btn ${group.status === "提供済み" ? "paid" : "unpaid"}`}
+                  >
+                    {group.status}
+                  </button>
                 </div>
               </li>
             );
@@ -425,20 +567,41 @@ function App() {
           <div className="topping-modal">
             <h3>トッピングを追加</h3>
             {(() => {
-              const currentOrder = orders.find(o => o.orderId === toppingTargetId);
+              const currentOrder = orders.find(
+                (o) => o.orderId === toppingTargetId,
+              );
               return (
                 <>
                   <p>対象: {currentOrder?.name}</p>
                   <div className="topping-options">
                     {availableToppings.map((t) => {
-                      const count = currentOrder?.toppings?.filter(item => item.name === t.name).length || 0;
+                      const count =
+                        currentOrder?.toppings?.filter(
+                          (item) => item.name === t.name,
+                        ).length || 0;
                       return (
-                        <div key={t.id || t.name} className="topping-option-row">
-                          <button className="topping-select-btn" onClick={() => addTopping(toppingTargetId, t)}>
-                            {t.name} (+{t.price}円) {count > 0 && <span className="topping-count"> ×{count}</span>}
+                        <div
+                          key={t.id || t.name}
+                          className="topping-option-row"
+                        >
+                          <button
+                            className="topping-select-btn"
+                            onClick={() => addTopping(toppingTargetId, t)}
+                          >
+                            {t.name} (+{t.price}円){" "}
+                            {count > 0 && (
+                              <span className="topping-count"> ×{count}</span>
+                            )}
                           </button>
                           {count > 0 && (
-                            <button className="topping-minus-btn" onClick={() => removeTopping(toppingTargetId, t.name)}>ー</button>
+                            <button
+                              className="topping-minus-btn"
+                              onClick={() =>
+                                removeTopping(toppingTargetId, t.name)
+                              }
+                            >
+                              ー
+                            </button>
                           )}
                         </div>
                       );
@@ -447,7 +610,12 @@ function App() {
                 </>
               );
             })()}
-            <button className="close-modal-btn" onClick={() => setToppingTargetId(null)}>完了</button>
+            <button
+              className="close-modal-btn"
+              onClick={() => setToppingTargetId(null)}
+            >
+              完了
+            </button>
           </div>
         </div>
       )}
@@ -457,33 +625,82 @@ function App() {
         <div className="modal-overlay">
           <div className="topping-modal">
             <h3>{customizingProduct.name} を選択</h3>
-            <p style={{ marginBottom: "15px", color: "#666" }}>バリエーションを選んでください</p>
-            <div className="flavor-options" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
+            <p style={{ marginBottom: "15px", color: "#666" }}>
+              バリエーションを選んでください
+            </p>
+            <div
+              className="flavor-options"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "10px",
+              }}
+            >
               {/* ドーナツの味選択 */}
-              {customizingProduct.product_type === "donut" && customizingProduct.name !== "milkyボールドーナツ" &&
+              {customizingProduct.product_type === "donut" &&
+                customizingProduct.name !== "milkyボールドーナツ" &&
                 ["プレーン", "チョコレート", "季節限定"].map((flavor) => (
-                  <button key={flavor} className="topping-select-btn" onClick={() => {
-                    addOrder({ ...customizingProduct, name: `${customizingProduct.name} (${flavor})` });
-                    setCustomizingProduct(null);
-                  }}>{flavor}</button>
+                  <button
+                    key={flavor}
+                    className="topping-select-btn"
+                    onClick={() => {
+                      addOrder({
+                        ...customizingProduct,
+                        name: `${customizingProduct.name} (${flavor})`,
+                      });
+                      setCustomizingProduct(null);
+                    }}
+                  >
+                    {flavor}
+                  </button>
                 ))}
               {/* ドリンクの温度選択 */}
-              {customizingProduct.product_type === "drink" && ["Ice", "Hot"].map((temp) => (
-                <button key={temp} className="topping-select-btn" onClick={() => {
-                  addOrder({ ...customizingProduct, name: `${customizingProduct.name} (${temp})` });
-                  setCustomizingProduct(null);
-                }}>{temp}</button>
-              ))}
+              {customizingProduct.product_type === "drink" &&
+                ["Ice", "Hot"].map((temp) => (
+                  <button
+                    key={temp}
+                    className="topping-select-btn"
+                    onClick={() => {
+                      addOrder({
+                        ...customizingProduct,
+                        name: `${customizingProduct.name} (${temp})`,
+                      });
+                      setCustomizingProduct(null);
+                    }}
+                  >
+                    {temp}
+                  </button>
+                ))}
               {/* ソフトクリームの味選択 */}
-              {customizingProduct.product_type === "soft_cream" && ["プレミアムmilky", "チョコ", "ミックス"].map((flavor) => (
-                <button key={flavor} className="topping-select-btn" onClick={() => {
-                  const vessel = customizingProduct.name.includes("キッズ") ? "キッズ" : customizingProduct.name.includes("コーン") ? "コーン" : "カップ";
-                  addOrder({ ...customizingProduct, name: `${flavor}ソフト (${vessel})` });
-                  setCustomizingProduct(null);
-                }}>{flavor}</button>
-              ))}
+              {customizingProduct.product_type === "soft_cream" &&
+                ["プレミアムmilky", "チョコ", "ミックス"].map((flavor) => (
+                  <button
+                    key={flavor}
+                    className="topping-select-btn"
+                    onClick={() => {
+                      const vessel = customizingProduct.name.includes("キッズ")
+                        ? "キッズ"
+                        : customizingProduct.name.includes("コーン")
+                          ? "コーン"
+                          : "カップ";
+                      addOrder({
+                        ...customizingProduct,
+                        name: `${flavor}ソフト (${vessel})`,
+                      });
+                      setCustomizingProduct(null);
+                    }}
+                  >
+                    {flavor}
+                  </button>
+                ))}
             </div>
-            <button className="close-modal-btn" onClick={() => setCustomizingProduct(null)} style={{ marginTop: "20px", backgroundColor: "#ccc" }}>キャンセル</button>
+            <button
+              className="close-modal-btn"
+              onClick={() => setCustomizingProduct(null)}
+              style={{ marginTop: "20px", backgroundColor: "#ccc" }}
+            >
+              キャンセル
+            </button>
           </div>
         </div>
       )}
