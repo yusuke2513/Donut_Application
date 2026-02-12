@@ -69,13 +69,13 @@ function App() {
 
   const handleCreateBox = () => {
     const boxId = `box-${Date.now()}`; // 重複しない箱IDを作成
-    const newCart = [...cartItems];
+    const newOrders = [...orders];
 
     selectedItems.forEach((index) => {
-      newCart[index] = { ...newCart[index], boxId: boxId }; // 選択した商品にIDを付与
+      newOrders[index] = { ...newOrders[index], boxId: boxId }; // 選択した商品にIDを付与
     });
 
-    setCartItems(newCart);
+    setOrders(newOrders);
     setSelectedItems([]); // 選択をリセット
     setIsGroupingMode(false); // モード終了
   };
@@ -265,8 +265,8 @@ function App() {
         </div>
 
         <ul className="order-list">
-          {/* 🌟 修正ポイント：cartItems 1つに統合して、すべての情報をここで出す */}
-          {cartItems.map((item, index) => (
+          {/* 🌟 修正ポイント：orders 1つに統合して、すべての情報をここで出す */}
+          {orders.map((item, index) => (
             <li
               key={index}
               className="order-item"
