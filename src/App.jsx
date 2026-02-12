@@ -23,6 +23,35 @@ function App() {
     const index = uniqueBoxIds.indexOf(boxId);
     return index !== -1 ? `グループ ${String.fromCharCode(65 + index)}` : ""; // 65は 'A' の文字コード
   };
+  // 🌟 App関数の冒頭（useStateの集まり）に追加
+  const [orderType, setOrderType] = useState("TO"); // 初期値はテイクアウト(TO)
+  const [tempToppings, setTempToppings] = useState([]); // モーダル内で一時的に選ぶトッピング
+
+  // 🌟 個数を変更する関数
+  const updateQuantity = (orderId, delta) => {
+    setOrders(
+      orders.map((order) =>
+        order.orderId === orderId
+          ? { ...order, quantity: Math.max(1, (order.quantity || 1) + delta) }
+          : order,
+      ),
+    );
+  };
+
+  // 🌟 addOrderを「トッピングとイートイン情報」を受け取れるように修正
+  const addOrder = (product, toppings = []) => {
+    setOrders([
+      ...orders,
+      {
+        ...product,
+        orderId: Date.now(),
+        toppings: toppings,
+        orderType: orderType, // 現在選択されているIN/TOを保存
+        quantity: 1,
+        status: "未提供",
+      },
+    ]);
+  };
 
   // useEffect を修正して、商品とトッピングを同時に取得
   useEffect(() => {
@@ -127,14 +156,6 @@ function App() {
     setServingQueue(servingQueue.filter((group) => group.status === "未提供"));
   };
 
-  // 注文追加（トッピング等の拡張もここで可能）
-  const addOrder = (product) => {
-    setOrders([
-      ...orders,
-      { ...product, orderId: Date.now(), toppings: [], status: "未提供" },
-    ]);
-  };
-
   const addTopping = (orderId, topping) => {
     setOrders(
       orders.map((order) =>
@@ -191,7 +212,40 @@ function App() {
     <div className="container">
       {/* 左：商品一覧（メニュー） */}
       <section className="menu-section">
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        ></div>
         <h2>🍩 メニュー</h2>
+
+        {/* 🌟 3番：IN/TO切り替えボタン */}
+        <div className="in-to-toggle" style={{ display: "flex", gap: "5px" }}>
+          <button
+            onClick={() => setOrderType("IN")}
+            style={{
+              backgroundColor: orderType === "IN" ? "#2c3e50" : "#eee",
+              color: orderType === "IN" ? "white" : "black",
+              padding: "8px 15px",
+              borderRadius: "5px",
+            }}
+          >
+            IN
+          </button>
+          <button
+            onClick={() => setOrderType("TO")}
+            style={{
+              backgroundColor: orderType === "TO" ? "#2c3e50" : "#eee",
+              color: orderType === "TO" ? "white" : "black",
+              padding: "8px 15px",
+              borderRadius: "5px",
+            }}
+          >
+            TO
+          </button>
+        </div>
         <div className="menu-tabs">
           {["donut", "soft_cream", "drink"].map((type) => (
             <button
@@ -294,24 +348,34 @@ function App() {
                   }}
                 >
                   <div className="order-info">
+                    {/* 🌟 IN/TOのバッジを表示 */}
+                    <span
+                      style={{
+                        fontSize: "0.7rem",
+                        background: "#333",
+                        color: "#fff",
+                        padding: "2px 4px",
+                        borderRadius: "3px",
+                        marginRight: "5px",
+                      }}
+                    >
+                      {item.orderType}
+                    </span>
                     <span className="order-name">{item.name}</span>
                     {item.toppings?.length > 0 && (
-                      <div className="order-toppings">
+                      <div
+                        className="order-toppings"
+                        style={{ marginTop: "5px" }}
+                      >
                         {item.toppings.map((t, i) => (
-                          <span
-                            key={i}
-                            className="topping-badge clickable"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeTopping(item.orderId, t.name);
-                            }}
-                          >
+                          <span key={i} className="topping-badge">
                             +{t.name}
                           </span>
                         ))}
                       </div>
                     )}
                   </div>
+
                   <div
                     className="order-actions"
                     style={{
@@ -320,20 +384,50 @@ function App() {
                       gap: "10px",
                     }}
                   >
-                    {!isGroupingMode &&
-                      (item.product_type === "donut" ||
-                        item.product_type === "soft_cream") && (
+                    {/* 🌟 2. 個数選択 (+/-) */}
+                    {!isGroupingMode && (
+                      <div
+                        className="quantity-controls"
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          marginRight: "10px",
+                        }}
+                      >
                         <button
-                          className="add-topping-trigger"
                           onClick={(e) => {
                             e.stopPropagation();
-                            setToppingTargetId(item.orderId);
+                            updateQuantity(item.orderId, -1);
+                          }}
+                          style={{ width: "25px" }}
+                        >
+                          -
+                        </button>
+                        <span
+                          style={{
+                            minWidth: "20px",
+                            textAlign: "center",
+                            fontWeight: "bold",
                           }}
                         >
-                          ＋
+                          {item.quantity || 1}
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            updateQuantity(item.orderId, 1);
+                          }}
+                          style={{ width: "25px" }}
+                        >
+                          +
                         </button>
-                      )}
-                    <span className="order-price">{item.price}円</span>
+                      </div>
+                    )}
+                    {/* 単価×個数で計算 */}
+                    <span className="order-price">
+                      {item.price * (item.quantity || 1)}円
+                    </span>
                     {!isGroupingMode && (
                       <button
                         className="delete-order-btn"
@@ -393,6 +487,18 @@ function App() {
                       }}
                     >
                       <div className="order-info">
+                        <span
+                          style={{
+                            fontSize: "0.7rem",
+                            background: "#333",
+                            color: "#fff",
+                            padding: "2px 4px",
+                            borderRadius: "3px",
+                            marginRight: "5px",
+                          }}
+                        >
+                          {item.orderType}
+                        </span>
                         <span>・{item.name}</span>
                         {item.toppings?.length > 0 && (
                           <div className="order-toppings">
@@ -404,9 +510,45 @@ function App() {
                           </div>
                         )}
                       </div>
-                      <div className="order-actions">
+                      <div
+                        className="order-actions"
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "10px",
+                        }}
+                      >
+                        {/* 🌟 箱の中でも個数選択ができるように配置 */}
+                        {!isGroupingMode && (
+                          <div
+                            className="quantity-controls"
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "5px",
+                            }}
+                          >
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                updateQuantity(item.orderId, -1);
+                              }}
+                            >
+                              -
+                            </button>
+                            <span>{item.quantity || 1}</span>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                updateQuantity(item.orderId, 1);
+                              }}
+                            >
+                              +
+                            </button>
+                          </div>
+                        )}
                         <span style={{ marginRight: "10px" }}>
-                          {item.price}円
+                          {item.price * (item.quantity || 1)}円
                         </span>
                         {!isGroupingMode && (
                           <button
@@ -432,17 +574,7 @@ function App() {
             <span>小計:</span>
             <span>{total}円</span>
           </div>
-          {discount > 0 && (
-            <div className="summary-row discount-info">
-              <span>セット割引 ({setCount}セット):</span>
-              <span className="discount-amount">-{discount}円</span>
-            </div>
-          )}
-          <hr />
-          <div className="summary-row final-total">
-            <h3>合計金額:</h3>
-            <h3>{finalTotal}円</h3>
-          </div>
+          {/* ... 割引や合計表示 ... */}
           <button
             className="checkout-button"
             onClick={handleCheckout}
@@ -694,6 +826,66 @@ function App() {
                   </button>
                 ))}
             </div>
+            {/* 🌟 2. 新規：トッピングの選択（確定前にここで選ぶ） */}
+            <div
+              className="topping-selection-area"
+              style={{
+                marginTop: "20px",
+                borderTop: "1px solid #ddd",
+                paddingTop: "10px",
+              }}
+            >
+              <h4>トッピングを追加</h4>
+              <div className="topping-options">
+                {availableToppings.map((t) => {
+                  const isSelected = tempToppings.some(
+                    (item) => item.name === t.name,
+                  );
+                  return (
+                    <button
+                      key={t.name}
+                      onClick={() => {
+                        if (isSelected)
+                          setTempToppings(
+                            tempToppings.filter((item) => item.name !== t.name),
+                          );
+                        else setTempToppings([...tempToppings, t]);
+                      }}
+                      className={`topping-select-btn ${isSelected ? "active" : ""}`}
+                      style={{
+                        backgroundColor: isSelected ? "#ffcc00" : "#f5f5f5",
+                      }}
+                    >
+                      {t.name} (+{t.price}円)
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="modal-footer" style={{ marginTop: "20px" }}>
+              <button
+                className="confirm-btn"
+                onClick={() => {
+                  // 🌟 ここで選んだトッピングを持って注文に追加
+                  addOrder(customizingProduct, tempToppings);
+                  setCustomizingProduct(null);
+                  setTempToppings([]); // 一時選択をリセット
+                }}
+              >
+                注文に追加する
+              </button>
+              <button
+                className="close-modal-btn"
+                onClick={() => {
+                  setCustomizingProduct(null);
+                  setTempToppings([]);
+                }}
+              >
+                キャンセル
+              </button>
+            </div>
+
             <button
               className="close-modal-btn"
               onClick={() => setCustomizingProduct(null)}
