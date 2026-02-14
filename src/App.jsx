@@ -52,12 +52,12 @@ function App() {
   useEffect(() => {
     const q = query(collection(db, "servingQueue"), orderBy("groupId", "asc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const queueData = snapshot.docs.map((doc) => ({
+      const data = snapshot.docs.map((doc) => ({
         firebaseId: doc.id,
         ...doc.data(),
       }));
       // setServingQueue(queueData); // クラウドの変更が即座に画面に反映される
-      setProducts(productData); // データが届き次第、すぐに表示
+      setProducts(data); // データが届き次第、すぐに表示
     });
 
     return () => unsubscribe(); // 画面を閉じたら監視を止める
