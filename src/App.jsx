@@ -51,9 +51,20 @@ function App() {
   const [newProductName, setNewProductName] = useState("");
   const [newProductPrice, setNewProductPrice] = useState("");
   const [isAdminAuthorized, setIsAdminAuthorized] = useState(false);
+
   const ADMIN_PASSWORD = "01300309"; // 🌟 好きなパスワードを設定
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const SITE_PASSWORD = "kobu2026"; // 🌟 サイト全体のログインパスワード
+
+  const handleLoginAction = (inputPassword) => {
+    if (inputPassword === SITE_PASSWORD) {
+      setIsLoggedIn(true);
+      // 🌟 ログインした時刻をブラウザに保存
+      localStorage.setItem(LOGIN_KEY, Date.now().toString());
+    } else {
+      alert("パスワードが違います");
+    }
+  };
 
   // App() 関数内に追加
   useEffect(() => {
@@ -88,17 +99,6 @@ function App() {
   useEffect(() => {
     const today = new Date();
     const dateLabel = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
-
-    // 前回の回答で作成したログインボタンの処理を更新
-    const handleLoginAction = (inputPassword) => {
-      if (inputPassword === SITE_PASSWORD) {
-        setIsLoggedIn(true);
-        // 🌟 ログインした時刻をブラウザに保存
-        localStorage.setItem(LOGIN_KEY, Date.now().toString());
-      } else {
-        alert("パスワードが違います");
-      }
-    };
 
     // 今日の日付ラベルが付いた履歴のみを取得
     const q = query(
@@ -488,8 +488,7 @@ function App() {
           <button
             onClick={(e) => {
               const val = document.getElementById("loginPwInput").value;
-              if (val === SITE_PASSWORD) setIsLoggedIn(true);
-              else alert("パスワードが違います");
+              handleLoginAction(val);
             }}
             className="login-btn"
           >
