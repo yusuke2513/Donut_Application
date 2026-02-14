@@ -56,8 +56,7 @@ function App() {
         firebaseId: doc.id,
         ...doc.data(),
       }));
-      // setServingQueue(queueData); // クラウドの変更が即座に画面に反映される
-      setProducts(data); // データが届き次第、すぐに表示
+      setServingQueue(data); // クラウドの変更が即座に画面に反映される
     });
 
     return () => unsubscribe(); // 画面を閉じたら監視を止める
@@ -232,6 +231,7 @@ function App() {
     ]);
   };
 
+  /*
   // useEffect を修正して、商品とトッピングを同時に取得
   useEffect(() => {
     const loadData = async () => {
@@ -245,6 +245,29 @@ function App() {
       setAvailableToppings(toppingData); // 🌟 ステートに保存
     };
     loadData();
+  }, []);
+  */
+
+  // 🌟 商品とトッピングの読み込み（高速化版）
+  useEffect(() => {
+    // ① 商品リストの監視（爆速化）
+    const q = query(collection(db, "products"), orderBy("name", "asc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setProducts(data); // 🌟 ここで正しく商品をセットする
+    });
+
+    // ② トッピングの取得
+    const loadToppings = async () => {
+      const toppingData = await fetchToppings();
+      setAvailableToppings(toppingData);
+    };
+    loadToppings();
+
+    return () => unsubscribe();
   }, []);
 
   /*
