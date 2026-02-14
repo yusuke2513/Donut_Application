@@ -47,6 +47,8 @@ function App() {
   const [recentOrders, setRecentOrders] = useState([]);
   const [newProductName, setNewProductName] = useState("");
   const [newProductPrice, setNewProductPrice] = useState("");
+  const [isAdminAuthorized, setIsAdminAuthorized] = useState(false);
+  const ADMIN_PASSWORD = "20260309"; // 🌟 好きなパスワードを設定してください
 
   // 🌟 1. 提供待ちリストのリアルタイム同期
   useEffect(() => {
@@ -112,6 +114,22 @@ function App() {
 
     return () => unsubscribe();
   }, []);
+
+  // App() 関数内に追加
+  const handleAuthorize = () => {
+    const input = prompt("管理者パスワードを入力してください");
+    if (input === ADMIN_PASSWORD) {
+      setIsAdminAuthorized(true);
+    } else {
+      alert("パスワードが正しくありません");
+    }
+  };
+
+  // 管理者メニューを閉じるときに、認証状態もリセットするように調整
+  const closeAdminMenu = () => {
+    setIsAdminOpen(false);
+    setIsAdminAuthorized(false); // 🌟 閉じるときにロックをかけ直す
+  };
 
   const clearServedItems = async () => {
     const servedItems = servingQueue.filter(
@@ -1069,6 +1087,111 @@ function App() {
           <div className="admin-modal">
             <div className="admin-header">
               <h2>管理者メニュー</h2>
+              {/* 🌟 閉じるときに認証をリセットするように変更 */}
+              <button className="close-btn" onClick={closeAdminMenu}>
+                閉じる
+              </button>
+            </div>
+
+            <div className="admin-tabs">
+              <button
+                onClick={() => setAdminTab("sales")}
+                className={adminTab === "sales" ? "active" : ""}
+              >
+                今日の売上
+              </button>
+              <button
+                onClick={() => setAdminTab("products")}
+                className={adminTab === "products" ? "active" : ""}
+              >
+                商品の追加・削除
+              </button>
+              <button
+                onClick={() => setAdminTab("history")}
+                className={adminTab === "history" ? "active" : ""}
+              >
+                直近10件
+              </button>
+            </div>
+
+            <div className="admin-content">
+              {adminTab === "sales" && (
+                <div className="sales-summary">
+                  <div className="sales-card">
+                    <h3>本日の売上合計</h3>
+                    <p className="amount">
+                      ¥{todaySales.revenue.toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="sales-card">
+                    <h3>販売個数</h3>
+                    <p className="count">{todaySales.count} 個</p>
+                  </div>
+                </div>
+              )}
+
+              {adminTab === "products" && (
+                <div className="product-management">
+                  {!isAdminAuthorized ? (
+                    // 🔒 ロック状態の表示
+                    <div
+                      className="auth-lock-view"
+                      style={{ textAlign: "center", padding: "40px 0" }}
+                    >
+                      <p>商品管理を操作するには認証が必要です</p>
+                      <button onClick={handleAuthorize} className="add-btn">
+                        ロックを解除する
+                      </button>
+                    </div>
+                  ) : (
+                    // 🔓 認証済みの表示（既存の追加・削除フォーム）
+                    <>
+                      <h3>商品の追加</h3>
+                      <div className="add-product-form">
+                        <input
+                          type="text"
+                          placeholder="商品名"
+                          value={newProductName}
+                          onChange={(e) => setNewProductName(e.target.value)}
+                        />
+                        <input
+                          type="number"
+                          placeholder="価格"
+                          value={newProductPrice}
+                          onChange={(e) => setNewProductPrice(e.target.value)}
+                        />
+                        <button onClick={handleAddProduct} className="add-btn">
+                          追加
+                        </button>
+                      </div>
+                      <hr />
+                      <h3>登録済みの商品一覧</h3>
+                      <div className="product-list-admin">
+                        {products.map((p) => (
+                          <div key={p.id} className="product-admin-item">
+                            <span>
+                              {p.name} (¥{p.price})
+                            </span>
+                            <button
+                              onClick={() => handleDeleteProduct(p.id)}
+                              className="delete-btn"
+                            >
+                              削除
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/*
+      {isAdminOpen && (
+        <div className="admin-overlay">
+          <div className="admin-modal">
+            <div className="admin-header">
+              <h2>管理者メニュー</h2>
               <button onClick={() => setIsAdminOpen(false)}>閉じる</button>
             </div>
 
@@ -1150,6 +1273,7 @@ function App() {
                   </div>
                 </div>
               )}
+                */}
 
               {adminTab === "history" && (
                 <div className="history-list">
