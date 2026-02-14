@@ -1071,12 +1071,6 @@ function App() {
       <button
         className="admin-menu-btn"
         onClick={() => setIsAdminOpen(true)}
-        style={{
-          position: "fixed",
-          bottom: "20px",
-          right: "20px",
-          zIndex: 100,
-        }}
       >
         管理者メニュー
       </button>

@@ -396,6 +396,44 @@ h2, h3 {
   box-shadow: 0 2px 3px rgba(0,0,0,0.2);
 }
 
+/* 右下の管理者メニューボタン本体 */
+.admin-menu-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 100;
+  
+  /* デザイン */
+  padding: 12px 20px;
+  background-color: #ffffff; /* 白背景 */
+  color: #ff4444;            /* 文字は目立つ赤 */
+  border: 2px solid #ff4444; /* 枠線も赤 */
+  border-radius: 30px;       /* 角丸にして柔らかい印象に */
+  font-weight: bold;
+  font-size: 0.9rem;
+  cursor: pointer;
+  
+  /* 影をつけて浮かせる */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  
+  /* 変化をなめらかに */
+  transition: all 0.2s ease;
+}
+
+/* マウスを乗せたとき */
+.admin-menu-btn:hover {
+  background-color: #ff4444; /* 背景を赤に */
+  color: #ffffff;            /* 文字を白に */
+  transform: translateY(-2px); /* 少し上に浮く */
+  box-shadow: 0 6px 15px rgba(255, 68, 68, 0.3);
+}
+
+/* ボタンを押した瞬間 */
+.admin-menu-btn:active {
+  transform: translateY(1px); /* 押し込まれる動き */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
 .sales-summary {
   display: grid;
   grid-template-columns: 1fr 1fr;
