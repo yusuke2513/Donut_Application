@@ -371,6 +371,31 @@ h2, h3 {
   overflow-y: auto;
 }
 
+.admin-close-bottom-btn {
+  padding: 12px 30px;
+  /* 🌟 目立つ赤色に変更 */
+  background-color: #ff4444; 
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 1.1rem; /* 少し大きくしてさらに目立たせます */
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+/* 🌟 マウスを乗せた時（ホバー）の色 */
+.admin-close-bottom-btn:hover {
+  background-color: #ff0000;
+}
+
+/* 🌟 ボタンを押した瞬間の動き */
+.admin-close-bottom-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 3px rgba(0,0,0,0.2);
+}
+
 .sales-summary {
   display: grid;
   grid-template-columns: 1fr 1fr;

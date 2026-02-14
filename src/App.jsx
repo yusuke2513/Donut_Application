@@ -487,7 +487,7 @@ function App() {
               {type === "donut"
                 ? "ドーナツ"
                 : type === "soft_cream"
-                  ? "ソフトクリーム"
+                  ? "ソフト"
                   : "ドリンク"}
             </button>
           ))}
@@ -1087,10 +1087,11 @@ function App() {
           <div className="admin-modal">
             <div className="admin-header">
               <h2>管理者メニュー</h2>
-              {/* 🌟 閉じるときに認証をリセットするように変更 */}
+              {/* 🌟 閉じるときに認証をリセットするように変更 
               <button className="close-btn" onClick={closeAdminMenu}>
                 閉じる
               </button>
+              */}
             </div>
 
             <div className="admin-tabs">
@@ -1129,6 +1130,15 @@ function App() {
                   </div>
                 </div>
               )}
+
+              <div className="admin-footer">
+                <button
+                  className="admin-close-bottom-btn"
+                  onClick={closeAdminMenu}
+                >
+                  閉じる
+                </button>
+              </div>
 
               {adminTab === "products" && (
                 <div className="product-management">
