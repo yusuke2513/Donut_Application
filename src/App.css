@@ -1,3 +1,15 @@
+button {
+  /* スマホのデフォルト装飾をリセット */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  
+  /* ダークモード時でも背景が変わらないように背景色を明示 */
+  background-color: #eee;
+  color: #000;
+  border: 1px solid #ccc;
+}
+
 :root {
   color-scheme: light; /* 常にライトモードの配色を使うように指示 */
 }
@@ -322,6 +334,18 @@ h2, h3 {
 .checkout-button:disabled {
   background-color: #ccc;
   cursor: not-allowed;
+}
+
+.quantity-controls button {
+  padding: 0;
+  line-height: 1;
+  background-color: #ffffff;
+  border: 1px solid #ddd;
+  transition: background-color 0.2s;
+}
+
+.quantity-controls button:active {
+  background-color: #f0f0f0; /* 押した時に少し色を変える */
 }
 
 /* 4. 提供待ち（キッチン）セクション */
