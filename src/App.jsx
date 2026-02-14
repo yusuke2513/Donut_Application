@@ -13,6 +13,7 @@ import {
   updateDoc,
   writeBatch,
   deleteDoc,
+  limit,
 } from "firebase/firestore"; // 🌟 追加
 import { serverTimestamp } from "firebase/firestore"; // 🌟 追加
 import { collection, query, where, onSnapshot } from "firebase/firestore";
@@ -44,6 +45,7 @@ function App() {
   const [adminTab, setAdminTab] = useState("sales"); // sales | products | history
   const [recentSales, setRecentSales] = useState([]); // 直近の履歴保存用
   const [todaySales, setTodaySales] = useState({ revenue: 0, count: 0 });
+  const [recentOrders, setRecentOrders] = useState([]);
 
   // 🌟 1. 提供待ちリストのリアルタイム同期
   useEffect(() => {
@@ -58,6 +60,7 @@ function App() {
 
     return () => unsubscribe(); // 画面を閉じたら監視を止める
   }, []);
+
   // 🌟 今日の売上をリアルタイムに集計する Effect
   useEffect(() => {
     const today = new Date();
@@ -84,6 +87,26 @@ function App() {
       });
 
       setTodaySales({ revenue, count });
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // 🌟 直近10件の履歴を監視する Effect
+  useEffect(() => {
+    // processedAt（保存時刻）で降順（新しい順）に並べ、最大10件取得
+    const q = query(
+      collection(db, "salesHistory"),
+      orderBy("processedAt", "desc"),
+      limit(10),
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const orders = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setRecentOrders(orders);
     });
 
     return () => unsubscribe();
@@ -1025,7 +1048,40 @@ function App() {
                 </div>
               )}
               {adminTab === "products" && <ProductManageView />}
-              {adminTab === "history" && <RecentOrdersView />}
+              {adminTab === "history" && (
+                <div className="history-list">
+                  <h3>直近10件の注文履歴</h3>
+                  {recentOrders.length === 0 ? (
+                    <p className="empty-msg">履歴がありません。</p>
+                  ) : (
+                    recentOrders.map((order) => (
+                      <div key={order.id} className="history-item-card">
+                        <div className="history-item-header">
+                          {/* 🌟 サーバー時刻を読みやすい形式に変換 */}
+                          <span className="time-stamp">
+                            {order.processedAt
+                              ?.toDate()
+                              .toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              }) || "保存中..."}
+                          </span>
+                          <span className="history-total">
+                            ¥{order.totalPrice?.toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="history-item-details">
+                          {order.items?.map((item, idx) => (
+                            <div key={idx} className="history-menu-name">
+                              ・{item.name} × {item.quantity}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>

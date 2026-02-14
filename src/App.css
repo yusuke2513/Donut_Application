@@ -392,6 +392,39 @@ h2, h3 {
   color: #d32f2f;
 }
 
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.history-item-card {
+  background: #fdfdfd;
+  border: 1px solid #eee;
+  border-left: 4px solid #555; /* 左側にアクセントライン */
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.history-item-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.time-stamp {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.history-menu-name {
+  font-size: 0.9rem;
+  color: #333;
+  padding-left: 5px;
+}
+
 /* 4. 提供待ち（キッチン）セクション */
 .serving-section {
   border-left: 4px solid #4caf50; /* キッチン用グリーンアクセント */
