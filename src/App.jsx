@@ -14,7 +14,36 @@ import {
   writeBatch,
   deleteDoc,
 } from "firebase/firestore"; // 🌟 追加
+import { serverTimestamp } from "firebase/firestore"; // 🌟 追加
+
 import "./App.css";
+
+const clearServedItems = async () => {
+  const servedItems = servingQueue.filter(
+    (group) => group.status === "提供済み",
+  );
+  if (servedItems.length === 0) return;
+
+  const batch = writeBatch(db);
+  const historyRef = collection(db, "salesHistory"); // 🌟 履歴用の新しいコレクション
+
+  servedItems.forEach((item) => {
+    // 1. 履歴用コレクションにコピーを作成
+    const newHistoryDocRef = doc(historyRef);
+    batch.set(newHistoryDocRef, {
+      ...item,
+      processedAt: serverTimestamp(), // 🌟 自動削除の基準となる時刻
+      archived: true,
+    });
+
+    // 2. 元の提供待ちリスト（servingQueue）からは削除
+    const oldDocRef = doc(db, "servingQueue", item.firebaseId);
+    batch.delete(oldDocRef);
+  });
+
+  await batch.commit();
+  alert("履歴に保存してリストをリセットしました。");
+};
 
 function App() {
   const [products, setProducts] = useState([]);
@@ -35,10 +64,12 @@ function App() {
     const index = uniqueBoxIds.indexOf(boxId);
     return index !== -1 ? `グループ ${String.fromCharCode(65 + index)}` : ""; // 65は 'A' の文字コード
   };
-  // 🌟 App関数の冒頭（useStateの集まり）に追加
   const [orderType, setOrderType] = useState("TO"); // 初期値はテイクアウト(TO)
   const [tempToppings, setTempToppings] = useState([]); // モーダル内で一時的に選ぶトッピング
   const [selectedVariation, setSelectedVariation] = useState(null); // 味や温度
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
+  const [adminTab, setAdminTab] = useState("sales"); // sales | products | history
+  const [recentSales, setRecentSales] = useState([]); // 直近の履歴保存用
 
   // 🌟 1. 提供待ちリストのリアルタイム同期
   useEffect(() => {
@@ -904,7 +935,9 @@ function App() {
                 >
                   <button
                     // onClick={() => toggleServingStatus(group.groupId)}
-                    onClick={() => toggleServingStatus(group.firebaseId, group.status)}
+                    onClick={() =>
+                      toggleServingStatus(group.firebaseId, group.status)
+                    }
                     className={`status-btn ${group.status === "提供済み" ? "paid" : "unpaid"}`}
                   >
                     {group.status}
@@ -916,10 +949,58 @@ function App() {
         </ul>
       </section>
 
-      {/* 右下の固定ボタン */}
-      <button className="admin-fab" onClick={() => alert("管理画面を開きます")}>
-        ドーナツの追加・削除
+      {/* 右下の管理者メニューボタン */}
+      <button
+        className="admin-menu-btn"
+        onClick={() => setIsAdminOpen(true)}
+        style={{
+          position: "fixed",
+          bottom: "20px",
+          right: "20px",
+          zIndex: 100,
+        }}
+      >
+        管理者メニュー
       </button>
+
+      {/* 管理者用オーバーレイ画面 */}
+      {isAdminOpen && (
+        <div className="admin-overlay">
+          <div className="admin-modal">
+            <div className="admin-header">
+              <h2>管理者メニュー</h2>
+              <button onClick={() => setIsAdminOpen(false)}>閉じる</button>
+            </div>
+
+            <div className="admin-tabs">
+              <button
+                onClick={() => setAdminTab("sales")}
+                className={adminTab === "sales" ? "active" : ""}
+              >
+                今日の売上
+              </button>
+              <button
+                onClick={() => setAdminTab("products")}
+                className={adminTab === "products" ? "active" : ""}
+              >
+                商品の追加・削除
+              </button>
+              <button
+                onClick={() => setAdminTab("history")}
+                className={adminTab === "history" ? "active" : ""}
+              >
+                直近10件の注文
+              </button>
+            </div>
+
+            <div className="admin-content">
+              {adminTab === "sales" && <TodaySalesView />}
+              {adminTab === "products" && <ProductManageView />}
+              {adminTab === "history" && <RecentOrdersView />}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* トッピングモーダル */}
       {customizingProduct && (
