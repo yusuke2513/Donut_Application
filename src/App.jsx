@@ -46,6 +46,8 @@ function App() {
   const [recentSales, setRecentSales] = useState([]); // 直近の履歴保存用
   const [todaySales, setTodaySales] = useState({ revenue: 0, count: 0 });
   const [recentOrders, setRecentOrders] = useState([]);
+  const [newProductName, setNewProductName] = useState("");
+  const [newProductPrice, setNewProductPrice] = useState("");
 
   // 🌟 1. 提供待ちリストのリアルタイム同期
   useEffect(() => {
@@ -137,6 +139,33 @@ function App() {
 
     await batch.commit();
     alert("履歴に保存してリストをリセットしました。");
+  };
+
+  // 商品追加の関数
+  const handleAddProduct = async () => {
+    if (!newProductName || !newProductPrice) {
+      alert("商品名と価格を入力してください");
+      return;
+    }
+    try {
+      await addDoc(collection(db, "products"), {
+        name: newProductName,
+        price: Number(newProductPrice),
+        category: activeTab, // 現在開いているタブ（donut等）をカテゴリにする例
+      });
+      setNewProductName("");
+      setNewProductPrice("");
+      alert("商品を追加しました！");
+    } catch (e) {
+      alert("追加に失敗しました");
+    }
+  };
+
+  // 商品削除の関数
+  const handleDeleteProduct = async (productId) => {
+    if (window.confirm("この商品を削除してもよろしいですか？")) {
+      await deleteDoc(doc(db, "products", productId));
+    }
   };
 
   // 🌟 2. お会計確定（Firestoreへの送信）
@@ -1047,7 +1076,49 @@ function App() {
                   </div>
                 </div>
               )}
-              {adminTab === "products" && <ProductManageView />}
+
+              {adminTab === "products" && (
+                <div className="product-management">
+                  <h3>商品の追加</h3>
+                  <div className="add-product-form">
+                    <input
+                      type="text"
+                      placeholder="商品名（例：オールドファッション）"
+                      value={newProductName}
+                      onChange={(e) => setNewProductName(e.target.value)}
+                    />
+                    <input
+                      type="number"
+                      placeholder="価格"
+                      value={newProductPrice}
+                      onChange={(e) => setNewProductPrice(e.target.value)}
+                    />
+                    <button onClick={handleAddProduct} className="add-btn">
+                      追加
+                    </button>
+                  </div>
+
+                  <hr />
+
+                  <h3>登録済みの商品一覧</h3>
+                  <div className="product-list-admin">
+                    {products.map((p) => (
+                      <div key={p.id} className="product-admin-item">
+                        <span>
+                          {p.name} (¥{p.price})
+                        </span>
+                        <button
+                          onClick={() => handleDeleteProduct(p.id)}
+                          className="delete-btn"
+                        >
+                          削除
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {adminTab === "history" && (
                 <div className="history-list">
                   <h3>直近10件の注文履歴</h3>
