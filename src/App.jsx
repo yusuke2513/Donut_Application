@@ -14,9 +14,9 @@ import {
   writeBatch,
   deleteDoc,
   limit,
+  where,
+  serverTimestamp,
 } from "firebase/firestore"; // 🌟 追加
-import { serverTimestamp } from "firebase/firestore"; // 🌟 追加
-import { collection, query, where, onSnapshot } from "firebase/firestore";
 import "./App.css";
 
 function App() {
@@ -43,7 +43,6 @@ function App() {
   const [selectedVariation, setSelectedVariation] = useState(null); // 味や温度
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [adminTab, setAdminTab] = useState("sales"); // sales | products | history
-  const [recentSales, setRecentSales] = useState([]); // 直近の履歴保存用
   const [todaySales, setTodaySales] = useState({ revenue: 0, count: 0 });
   const [recentOrders, setRecentOrders] = useState([]);
   const [newProductName, setNewProductName] = useState("");
