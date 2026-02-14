@@ -56,7 +56,8 @@ function App() {
         firebaseId: doc.id,
         ...doc.data(),
       }));
-      setServingQueue(queueData); // クラウドの変更が即座に画面に反映される
+      // setServingQueue(queueData); // クラウドの変更が即座に画面に反映される
+      setProducts(productData); // データが届き次第、すぐに表示
     });
 
     return () => unsubscribe(); // 画面を閉じたら監視を止める
@@ -121,12 +122,15 @@ function App() {
 
     const batch = writeBatch(db);
     const historyRef = collection(db, "salesHistory"); // 🌟 履歴用の新しいコレクション
+    const today = new Date();
+    const dateLabel = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
 
     servedItems.forEach((item) => {
       // 1. 履歴用コレクションにコピーを作成
       const newHistoryDocRef = doc(historyRef);
       batch.set(newHistoryDocRef, {
         ...item,
+        dateLabel: dateLabel,
         processedAt: serverTimestamp(), // 🌟 自動削除の基準となる時刻
         archived: true,
       });
