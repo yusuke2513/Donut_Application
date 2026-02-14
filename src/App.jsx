@@ -252,13 +252,25 @@ function App() {
   useEffect(() => {
     // ① 商品リストの監視（爆速化）
     const q = query(collection(db, "products"), orderBy("name", "asc"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const data = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        // 🌟 念のためログを出して、データが届いているか確認
+        console.log("読み込んだ商品:", data);
+        setProducts(data);
+      },
+      (error) => {
+        console.error("Firestore読み込みエラー:", error);
+      },
+    );
+    /*
       setProducts(data); // 🌟 ここで正しく商品をセットする
     });
+    */
 
     // ② トッピングの取得
     const loadToppings = async () => {
