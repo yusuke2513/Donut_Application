@@ -15,35 +15,8 @@ import {
   deleteDoc,
 } from "firebase/firestore"; // 🌟 追加
 import { serverTimestamp } from "firebase/firestore"; // 🌟 追加
-
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 import "./App.css";
-
-const clearServedItems = async () => {
-  const servedItems = servingQueue.filter(
-    (group) => group.status === "提供済み",
-  );
-  if (servedItems.length === 0) return;
-
-  const batch = writeBatch(db);
-  const historyRef = collection(db, "salesHistory"); // 🌟 履歴用の新しいコレクション
-
-  servedItems.forEach((item) => {
-    // 1. 履歴用コレクションにコピーを作成
-    const newHistoryDocRef = doc(historyRef);
-    batch.set(newHistoryDocRef, {
-      ...item,
-      processedAt: serverTimestamp(), // 🌟 自動削除の基準となる時刻
-      archived: true,
-    });
-
-    // 2. 元の提供待ちリスト（servingQueue）からは削除
-    const oldDocRef = doc(db, "servingQueue", item.firebaseId);
-    batch.delete(oldDocRef);
-  });
-
-  await batch.commit();
-  alert("履歴に保存してリストをリセットしました。");
-};
 
 function App() {
   const [products, setProducts] = useState([]);
@@ -70,6 +43,7 @@ function App() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [adminTab, setAdminTab] = useState("sales"); // sales | products | history
   const [recentSales, setRecentSales] = useState([]); // 直近の履歴保存用
+  const [todaySales, setTodaySales] = useState({ revenue: 0, count: 0 });
 
   // 🌟 1. 提供待ちリストのリアルタイム同期
   useEffect(() => {
@@ -84,6 +58,63 @@ function App() {
 
     return () => unsubscribe(); // 画面を閉じたら監視を止める
   }, []);
+  // 🌟 今日の売上をリアルタイムに集計する Effect
+  useEffect(() => {
+    const today = new Date();
+    const dateLabel = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+
+    // 今日の日付ラベルが付いた履歴のみを取得
+    const q = query(
+      collection(db, "salesHistory"),
+      where("dateLabel", "==", dateLabel),
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      let revenue = 0;
+      let count = 0;
+
+      snapshot.docs.forEach((doc) => {
+        const data = doc.data();
+        revenue += data.totalPrice || 0;
+        if (data.items) {
+          data.items.forEach((item) => {
+            count += item.quantity || 1;
+          });
+        }
+      });
+
+      setTodaySales({ revenue, count });
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const clearServedItems = async () => {
+    const servedItems = servingQueue.filter(
+      (group) => group.status === "提供済み",
+    );
+    if (servedItems.length === 0) return;
+
+    const batch = writeBatch(db);
+    const historyRef = collection(db, "salesHistory"); // 🌟 履歴用の新しいコレクション
+
+    servedItems.forEach((item) => {
+      // 1. 履歴用コレクションにコピーを作成
+      const newHistoryDocRef = doc(historyRef);
+      batch.set(newHistoryDocRef, {
+        ...item,
+        processedAt: serverTimestamp(), // 🌟 自動削除の基準となる時刻
+        archived: true,
+      });
+
+      // 2. 元の提供待ちリスト（servingQueue）からは削除
+      const oldDocRef = doc(db, "servingQueue", item.firebaseId);
+      batch.delete(oldDocRef);
+    });
+
+    await batch.commit();
+    alert("履歴に保存してリストをリセットしました。");
+  };
 
   // 🌟 2. お会計確定（Firestoreへの送信）
   const handleCheckout = async () => {
@@ -113,21 +144,6 @@ function App() {
     await updateDoc(docRef, {
       status: currentStatus === "未提供" ? "提供済み" : "未提供",
     });
-  };
-
-  // 🌟 4. 提供済みリストのリセット（一括削除）
-  const clearServedItems = async () => {
-    const servedItems = servingQueue.filter(
-      (group) => group.status === "提供済み",
-    );
-    if (servedItems.length === 0) return;
-
-    const batch = writeBatch(db);
-    servedItems.forEach((item) => {
-      const docRef = doc(db, "servingQueue", item.firebaseId);
-      batch.delete(docRef);
-    });
-    await batch.commit();
   };
 
   // 🌟 個数を変更する関数
@@ -994,7 +1010,20 @@ function App() {
             </div>
 
             <div className="admin-content">
-              {adminTab === "sales" && <TodaySalesView />}
+              {adminTab === "sales" && (
+                <div className="sales-summary">
+                  <div className="sales-card">
+                    <h3>本日の売上合計</h3>
+                    <p className="amount">
+                      ¥{todaySales.revenue.toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="sales-card">
+                    <h3>販売個数</h3>
+                    <p className="count">{todaySales.count} 個</p>
+                  </div>
+                </div>
+              )}
               {adminTab === "products" && <ProductManageView />}
               {adminTab === "history" && <RecentOrdersView />}
             </div>
