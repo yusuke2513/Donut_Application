@@ -19,6 +19,9 @@ import {
 } from "firebase/firestore"; // 🌟 追加
 import "./App.css";
 
+const LOGIN_KEY = "shop_login_timestamp";
+const LOGIN_DURATION = 24 * 60 * 60 * 1000; // 24時間をミリ秒で計算 (86,400,000ms)
+
 function App() {
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -52,6 +55,21 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const SITE_PASSWORD = "kobu2026"; // 🌟 サイト全体のログインパスワード
 
+  // App() 関数内に追加
+  useEffect(() => {
+    const lastLogin = localStorage.getItem(LOGIN_KEY);
+    if (lastLogin) {
+      const now = Date.now();
+      // 🌟 現在時刻と保存された時刻の差が 24時間以内か判定
+      if (now - parseInt(lastLogin) < LOGIN_DURATION) {
+        setIsLoggedIn(true);
+      } else {
+        // 期限切れの場合は念のため削除
+        localStorage.removeItem(LOGIN_KEY);
+      }
+    }
+  }, []);
+
   // 🌟 1. 提供待ちリストのリアルタイム同期
   useEffect(() => {
     const q = query(collection(db, "servingQueue"), orderBy("groupId", "asc"));
@@ -70,6 +88,17 @@ function App() {
   useEffect(() => {
     const today = new Date();
     const dateLabel = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
+
+    // 前回の回答で作成したログインボタンの処理を更新
+    const handleLoginAction = (inputPassword) => {
+      if (inputPassword === SITE_PASSWORD) {
+        setIsLoggedIn(true);
+        // 🌟 ログインした時刻をブラウザに保存
+        localStorage.setItem(LOGIN_KEY, Date.now().toString());
+      } else {
+        alert("パスワードが違います");
+      }
+    };
 
     // 今日の日付ラベルが付いた履歴のみを取得
     const q = query(
@@ -445,21 +474,20 @@ function App() {
     return (
       <div className="login-screen-overlay">
         <div className="login-card">
-          <h1>🍩 Donut Shop POS</h1>
+          <h1>🍩ログイン画面</h1>
           <p>システムを利用するにはログインが必要です</p>
           <input
             type="password"
+            id="loginPwInput"
             placeholder="パスワードを入力"
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && e.target.value === SITE_PASSWORD) {
-                setIsLoggedIn(true);
-              }
-            }}
             className="login-input"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleLoginAction(e.target.value);
+            }}
           />
           <button
             onClick={(e) => {
-              const val = e.target.previousSibling.value;
+              const val = document.getElementById("loginPwInput").value;
               if (val === SITE_PASSWORD) setIsLoggedIn(true);
               else alert("パスワードが違います");
             }}
