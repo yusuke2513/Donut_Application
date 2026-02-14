@@ -153,7 +153,7 @@ function App() {
       await addDoc(collection(db, "products"), {
         name: newProductName,
         price: Number(newProductPrice),
-        category: activeTab, // 現在開いているタブ（donut等）をカテゴリにする例
+        product_type: activeTab, // 現在開いているタブ（donut等）をカテゴリにする例
       });
       setNewProductName("");
       setNewProductPrice("");
@@ -231,7 +231,6 @@ function App() {
     ]);
   };
 
-  /*
   // useEffect を修正して、商品とトッピングを同時に取得
   useEffect(() => {
     const loadData = async () => {
@@ -246,19 +245,17 @@ function App() {
     };
     loadData();
   }, []);
-  */
 
+  /*
   // 🌟 商品とトッピングの読み込み（高速化版）
   useEffect(() => {
     // ① 商品リストの監視（爆速化）
-    const q = query(collection(db, "products"), orderBy("name", "asc"));
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const data = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
+    const q = query(collection(db, "products"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const data = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
         // 🌟 念のためログを出して、データが届いているか確認
         console.log("読み込んだ商品:", data);
         setProducts(data);
@@ -267,10 +264,6 @@ function App() {
         console.error("Firestore読み込みエラー:", error);
       },
     );
-    /*
-      setProducts(data); // 🌟 ここで正しく商品をセットする
-    });
-    */
 
     // ② トッピングの取得
     const loadToppings = async () => {
@@ -281,6 +274,7 @@ function App() {
 
     return () => unsubscribe();
   }, []);
+  */
 
   /*
   // お会計確定ボタンの処理
