@@ -1,7 +1,19 @@
 import { useEffect, useState } from "react";
-import { calculateFinalTotal } from "../database/orderLogic.js";
-import { fetchProducts } from "../database/products";
-import { fetchToppings } from "../database/toppings";
+import { calculateFinalTotal } from "./database/orderLogic.js";
+import { fetchProducts } from "./database/products.js";
+import { fetchToppings } from "./database/toppings.js";
+import { db } from "./database/firebase.js"; // 🌟 追加
+import {
+  collection,
+  addDoc,
+  onSnapshot,
+  query,
+  orderBy,
+  doc,
+  updateDoc,
+  writeBatch,
+  deleteDoc,
+} from "firebase/firestore"; // 🌟 追加
 import "./App.css";
 
 function App() {
@@ -27,6 +39,65 @@ function App() {
   const [orderType, setOrderType] = useState("TO"); // 初期値はテイクアウト(TO)
   const [tempToppings, setTempToppings] = useState([]); // モーダル内で一時的に選ぶトッピング
   const [selectedVariation, setSelectedVariation] = useState(null); // 味や温度
+
+  // 🌟 1. 提供待ちリストのリアルタイム同期
+  useEffect(() => {
+    const q = query(collection(db, "servingQueue"), orderBy("groupId", "asc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const queueData = snapshot.docs.map((doc) => ({
+        firebaseId: doc.id,
+        ...doc.data(),
+      }));
+      setServingQueue(queueData); // クラウドの変更が即座に画面に反映される
+    });
+
+    return () => unsubscribe(); // 画面を閉じたら監視を止める
+  }, []);
+
+  // 🌟 2. お会計確定（Firestoreへの送信）
+  const handleCheckout = async () => {
+    if (orders.length === 0) return;
+    const { finalTotal } = calculateFinalTotal(orders);
+
+    if (window.confirm(`合計 ${finalTotal}円 です。確定して送信しますか？`)) {
+      try {
+        await addDoc(collection(db, "servingQueue"), {
+          groupId: Date.now(),
+          items: orders, // 🌟 数量(quantity)や箱IDを含む全データ
+          totalPrice: finalTotal,
+          status: "未提供",
+        });
+        setOrders([]);
+        setSelectedItems([]);
+        setIsGroupingMode(false);
+      } catch (e) {
+        alert("送信に失敗しました。ネット接続を確認してください。");
+      }
+    }
+  };
+
+  // 🌟 3. 提供ステータスの更新（クラウド側を書き換え）
+  const toggleServingStatus = async (firebaseId, currentStatus) => {
+    const docRef = doc(db, "servingQueue", firebaseId);
+    await updateDoc(docRef, {
+      status: currentStatus === "未提供" ? "提供済み" : "未提供",
+    });
+  };
+
+  // 🌟 4. 提供済みリストのリセット（一括削除）
+  const clearServedItems = async () => {
+    const servedItems = servingQueue.filter(
+      (group) => group.status === "提供済み",
+    );
+    if (servedItems.length === 0) return;
+
+    const batch = writeBatch(db);
+    servedItems.forEach((item) => {
+      const docRef = doc(db, "servingQueue", item.firebaseId);
+      batch.delete(docRef);
+    });
+    await batch.commit();
+  };
 
   // 🌟 個数を変更する関数
   const updateQuantity = (orderId, delta) => {
@@ -74,6 +145,7 @@ function App() {
     loadData();
   }, []);
 
+  /*
   // お会計確定ボタンの処理
   const handleCheckout = () => {
     if (orders.length === 0) return;
@@ -108,6 +180,7 @@ function App() {
       setIsGroupingMode(false); // モードを終了
     }
   };
+  */
 
   const handleMenuClick = (product) => {
     // 🌟 カスタムが不要な商品（例：ボールドーナツ）はそのまま追加
@@ -143,6 +216,7 @@ function App() {
     }
   };
 
+  /*
   // 🌟 提供待ちリスト内のステータスを切り替える関数（グループ単位）
   const toggleServingStatus = (groupId) => {
     setServingQueue(
@@ -171,6 +245,7 @@ function App() {
       ),
     );
   };
+  */
 
   // 提供済み・未提供の切り替え
   const toggleStatus = (orderId) => {
@@ -828,7 +903,8 @@ function App() {
                   }}
                 >
                   <button
-                    onClick={() => toggleServingStatus(group.groupId)}
+                    // onClick={() => toggleServingStatus(group.groupId)}
+                    onClick={() => toggleServingStatus(group.firebaseId, group.status)}
                     className={`status-btn ${group.status === "提供済み" ? "paid" : "unpaid"}`}
                   >
                     {group.status}
