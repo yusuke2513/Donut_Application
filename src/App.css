@@ -16,6 +16,57 @@ button {
 
 /* App.css の上部または全体の設定に追加 */
 
+/* ログイン画面全体の背景 */
+.login-screen-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #f4f7f6;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* ログインカード */
+.login-card {
+  background: white;
+  padding: 40px;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  text-align: center;
+  width: 90%;
+  max-width: 400px;
+}
+
+.login-card h1 {
+  color: #ff4444;
+  margin-bottom: 20px;
+}
+
+.login-input {
+  width: 100%;
+  padding: 12px;
+  margin: 20px 0;
+  border: 2px solid #eee;
+  border-radius: 8px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
 body {
   background-color: #ffffff; /* 背景を確実に白にする */
   color: #333333;           /* 文字を確実に濃いグレーにする */
@@ -191,7 +242,6 @@ h2, h3 {
   box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
-/* App.css に追加 */
 
 .topping-count {
   font-weight: bold;

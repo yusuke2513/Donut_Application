@@ -48,7 +48,9 @@ function App() {
   const [newProductName, setNewProductName] = useState("");
   const [newProductPrice, setNewProductPrice] = useState("");
   const [isAdminAuthorized, setIsAdminAuthorized] = useState(false);
-  const ADMIN_PASSWORD = "20260309"; // 🌟 好きなパスワードを設定してください
+  const ADMIN_PASSWORD = "01300309"; // 🌟 好きなパスワードを設定
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const SITE_PASSWORD = "kobu2026"; // 🌟 サイト全体のログインパスワード
 
   // 🌟 1. 提供待ちリストのリアルタイム同期
   useEffect(() => {
@@ -438,6 +440,37 @@ function App() {
 
   const { total, discount, finalTotal, numTrios, numCombos } =
     calculateFinalTotal(orders);
+
+  if (!isLoggedIn) {
+    return (
+      <div className="login-screen-overlay">
+        <div className="login-card">
+          <h1>🍩 Donut Shop POS</h1>
+          <p>システムを利用するにはログインが必要です</p>
+          <input
+            type="password"
+            placeholder="パスワードを入力"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && e.target.value === SITE_PASSWORD) {
+                setIsLoggedIn(true);
+              }
+            }}
+            className="login-input"
+          />
+          <button
+            onClick={(e) => {
+              const val = e.target.previousSibling.value;
+              if (val === SITE_PASSWORD) setIsLoggedIn(true);
+              else alert("パスワードが違います");
+            }}
+            className="login-btn"
+          >
+            ログイン
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container">
@@ -1068,10 +1101,7 @@ function App() {
       </section>
 
       {/* 右下の管理者メニューボタン */}
-      <button
-        className="admin-menu-btn"
-        onClick={() => setIsAdminOpen(true)}
-      >
+      <button className="admin-menu-btn" onClick={() => setIsAdminOpen(true)}>
         管理者メニュー
       </button>
 
