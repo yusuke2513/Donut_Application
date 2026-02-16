@@ -51,6 +51,7 @@ function App() {
   const [newProductName, setNewProductName] = useState("");
   const [newProductPrice, setNewProductPrice] = useState("");
   const [isAdminAuthorized, setIsAdminAuthorized] = useState(false);
+  const [selectedDonutBase, setSelectedDonutBase] = useState(null); // プレーン or チョコレート
 
   const ADMIN_PASSWORD = "01300309"; // 🌟 好きなパスワードを設定
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -1505,15 +1506,52 @@ function App() {
             <div style={{ marginTop: "25px", display: "flex", gap: "10px" }}>
               <button
                 onClick={() => {
+                  /*
                   addOrder(customizingProduct, selectedVariation, tempToppings);
                   setCustomizingProduct(null);
                   setSelectedVariation(null);
                   setTempToppings([]);
+                  */
+                  let finalProduct = { ...customizingProduct };
+                  let finalVariation = selectedVariation;
+
+                  if (customizingProduct.name === "milkyドーナツソフト") {
+                    // 🌟 命名規則：milkyドーナツソフト (プレーン・ミックス)
+                    const combinedName = `milkyドーナツソフト (${selectedDonutBase}・${selectedVariation})`;
+
+                    // addOrder を呼ぶ際に、名前を上書きしてトッピングなし(空配列)で送る
+                    addOrder(
+                      { ...customizingProduct, name: combinedName },
+                      null,
+                      [],
+                    );
+                  } else {
+                    // 通常商品の追加処理
+                    addOrder(
+                      customizingProduct,
+                      selectedVariation,
+                      tempToppings,
+                    );
+                  }
+
+                  // 状態をリセットして閉じる
+                  setCustomizingProduct(null);
+                  setSelectedVariation(null);
+                  setSelectedDonutBase(null); // 🌟 追加
+                  setTempToppings([]);
                 }}
+                disabled={
+                  customizingProduct.name === "milkyドーナツソフト"
+                    ? !selectedDonutBase || !selectedVariation // ドーナツソフトは両方必須
+                    : !selectedVariation &&
+                      customizingProduct.name !== "milkyボールドーナツ"
+                }
+                /*
                 disabled={
                   !selectedVariation &&
                   customizingProduct.name !== "milkyボールドーナツ"
                 }
+                  */
                 style={{
                   flex: 2,
                   padding: "15px",
@@ -1521,11 +1559,21 @@ function App() {
                   color: "white",
                   borderRadius: "8px",
                   fontWeight: "bold",
+                  opacity: (
+                    customizingProduct.name === "milkyドーナツソフト"
+                      ? !selectedDonutBase || !selectedVariation
+                      : !selectedVariation &&
+                        customizingProduct.name !== "milkyボールドーナツ"
+                  )
+                    ? 0.5
+                    : 1,
+                  /*
                   opacity:
                     !selectedVariation &&
                     customizingProduct.name !== "milkyボールドーナツ"
                       ? 0.5
                       : 1,
+                      */
                 }}
               >
                 確定して追加
