@@ -84,13 +84,22 @@ function App() {
   // 🌟 1. 提供待ちリストのリアルタイム同期
   useEffect(() => {
     const q = query(collection(db, "servingQueue"), orderBy("groupId", "asc"));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map((doc) => ({
-        firebaseId: doc.id,
-        ...doc.data(),
-      }));
-      setServingQueue(data); // クラウドの変更が即座に画面に反映される
-    });
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const data = snapshot.docs.map((doc) => ({
+          firebaseId: doc.id,
+          ...doc.data(),
+          product_type:
+            doc.data().product_type || doc.data().category || "donut",
+        }));
+        console.log("読み込み完了:", data);
+        setServingQueue(data); // クラウドの変更が即座に画面に反映される
+      },
+      (error) => {
+        console.error("Firestore同期エラー:", error);
+      },
+    );
 
     return () => unsubscribe(); // 画面を閉じたら監視を止める
   }, []);

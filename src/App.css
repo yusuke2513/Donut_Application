@@ -44,6 +44,9 @@ button {
 .login-card h1 {
   color: #ff4444;
   margin-bottom: 20px;
+  white-space: nowrap;      /* 1行に強制*/
+  font-size: 1.5rem;        /* スマホで見やすいように少しサイズを小さく調整 */
+  letter-spacing: -1px;
 }
 
 .login-input {
