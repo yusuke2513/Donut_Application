@@ -565,7 +565,16 @@ function App() {
 
         <div className="menu-grid">
           {products
-            .filter((p) => p.product_type === activeTab)
+            // .filter((p) => p.product_type === activeTab)
+            .filter((p) => {
+              // ドーナツタブかどうか
+              const isCorrectTab = p.product_type === activeTab;
+
+              // IN限定商品(inOnly: true) かつ 今がTO(お持ち帰り)モードなら隠す
+              const isHiddenTO = p.inOnly === true && orderType === "TO";
+
+              return isCorrectTab && !isHiddenTO;
+            })
             .map((p) => (
               <button
                 key={`${p.product_type}-${p.id}`}
